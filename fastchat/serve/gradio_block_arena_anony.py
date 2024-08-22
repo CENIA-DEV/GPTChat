@@ -174,14 +174,14 @@ def share_click(state0, state1, model_selector0, model_selector1, request: gr.Re
         )
 
 
-SAMPLING_WEIGHTS = {}
+SAMPLING_WEIGHTS = {"gpt-3.5-turbo": 3, "vicuna-7b-v1.5": 6}
 
 # target model sampling weights will be boosted.
 BATTLE_TARGETS = {}
 
 ANON_MODELS = []
 
-SAMPLING_BOOST_MODELS = []
+SAMPLING_BOOST_MODELS = ["gpt-3.5-turbo", "vicuna-7b-v1.5"]
 
 # outage models won't be sampled.
 OUTAGE_MODELS = []
@@ -264,6 +264,7 @@ def add_text(
             SAMPLING_WEIGHTS,
             SAMPLING_BOOST_MODELS,
         )
+        print(model_left, model_right)
         states = [
             State(model_left),
             State(model_right),
@@ -419,16 +420,11 @@ def build_side_by_side_ui_anony(models):
 
 {SURVEY_LINK}
 
-## 📣 News
-- Chatbot Arena now supports images in beta. Check it out [here](https://chat.lmsys.org/?vision).
 
 ## 📜 Rules
 - Ask any question to two anonymous models (e.g., ChatGPT, Gemini, Claude, Llama) and vote for the better one!
 - You can chat for multiple turns until you identify a winner.
 - Votes won't be counted if model identities are revealed during the conversation.
-
-## 🏆 Chatbot Arena [Leaderboard](https://leaderboard.lmsys.org)
-- We've collected **1,000,000+** human votes to compute an LLM leaderboard for 100+ models. Find out who is the 🥇LLM Champion [here](https://leaderboard.lmsys.org)!
 
 ## 👇 Chat now!
 """
