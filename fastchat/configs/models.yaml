@@ -1,11 +1,18 @@
 SAMPLING_WEIGHTS:
-  gpt-3.5-turbo: 3
+  gpt-3.5-turbo: 0.1
   vicuna-7b-v1.5: 6
+  Meta-Llama-3.1-8B-Instruct: 6
+  gemma-2-9b-it: 2
   
-BATTLE_TARGETS: {}
-ANON_MODELS: []
+BATTLE_TARGETS:
+  gpt-3.5-turbo: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it"]
+  vicuna-7b-v1.5: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it"]
+  Meta-Llama-3.1-8B-Instruct: ["gemma-2-9b-it"]
+  gemma-2-9b-it:  ["Meta-Llama-3.1-8B-Instruct"]
+
+ANON_MODELS: ["Meta-Llama-3.1-8B-Instruct"]
 SAMPLING_BOOST_MODELS:
-  - gpt-3.5-turbo
   - vicuna-7b-v1.5
   - Phi-3-small-128k-instruct
-OUTAGE_MODELS: []
+  - Meta-Llama-3.1-8B-Instruct
+OUTAGE_MODELS: ["gpt-3.5-turbo"]

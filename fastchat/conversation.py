@@ -11,7 +11,7 @@ from enum import auto, IntEnum
 from io import BytesIO
 import os
 from typing import List, Any, Dict, Union, Tuple
-from constants import SYSTEM_MSG
+from fastchat.constants import SYSTEM_MSG
 
 class SeparatorStyle(IntEnum):
     """Separator styles."""

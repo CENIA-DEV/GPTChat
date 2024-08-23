@@ -182,7 +182,7 @@ BATTLE_TARGETS = config.get("BATTLE_TARGETS", {})
 ANON_MODELS = config.get("ANON_MODELS", [])
 SAMPLING_BOOST_MODELS = config.get("SAMPLING_BOOST_MODELS", [])
 OUTAGE_MODELS = config.get("OUTAGE_MODELS", [])
-
+breakpoint()
 
 def get_sample_weight(model, outage_models, sampling_weights, sampling_boost_models=[]):
     if model in outage_models:
