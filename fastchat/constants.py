@@ -15,9 +15,7 @@ SURVEY_LINK = """<div style='text-align: center; margin: 20px 0;'>
 </div>"""
 
 ##### For the gradio web server
-SERVER_ERROR_MSG = (
-    "**ERROR DE RED DEBIDO AL ALTO TRÁFICO. POR FAVOR REGENERE O ACTUALICE ESTA PÁGINA.**"
-)
+SERVER_ERROR_MSG = "**ERROR DE RED DEBIDO AL ALTO TRÁFICO. POR FAVOR REGENERE O ACTUALICE ESTA PÁGINA.**"
 TEXT_MODERATION_MSG = (
     "$MODERATION$ SU TEXTO VIOLA NUESTRAS DIRECTRICES DE MODERACIÓN DE CONTENIDOS."
 )
@@ -42,7 +40,10 @@ SESSION_EXPIRATION_TIME = 3600
 LOGDIR = os.getenv("LOGDIR", ".")
 # CPU Instruction Set Architecture
 CPU_ISA = os.getenv("CPU_ISA")
-
+# models to use config file path
+CONFIG_MODELS_FILE = os.getenv("FASTCHAT_CONFIG", "fastchat/configs/models.yaml")
+# System Spanish message
+SYSTEM_MSG = "Una conversación entre un usuario curioso y un modelo de lenguaje.El modelo de lenguaje debe responder siempre en español y proporcionar información verificada sin inventar datos."
 
 ##### For the controller and workers (could be overwritten through ENV variables.)
 CONTROLLER_HEART_BEAT_EXPIRATION = int(

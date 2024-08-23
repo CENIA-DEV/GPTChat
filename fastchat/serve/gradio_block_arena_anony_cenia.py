@@ -5,7 +5,7 @@ Users chat with two anonymous models.
 
 import json
 import time
-
+import yaml
 import gradio as gr
 import numpy as np
 
@@ -15,6 +15,7 @@ from fastchat.constants import (
     SLOW_MODEL_MSG,
     BLIND_MODE_INPUT_CHAR_LEN_LIMIT,
     CONVERSATION_TURN_LIMIT,
+    CONFIG_MODELS_FILE
 )
 from fastchat.serve.gradio_block_arena_named import flash_buttons
 from fastchat.serve.gradio_web_server import (
@@ -173,17 +174,14 @@ def share_click(state0, state1, model_selector0, model_selector1, request: gr.Re
         )
 
 
-SAMPLING_WEIGHTS = {"gpt-3.5-turbo": 3, "vicuna-7b-v1.5": 6}
+with open(CONFIG_MODELS_FILE, "r") as file:
+    config = yaml.safe_load(file)
 
-# target model sampling weights will be boosted.
-BATTLE_TARGETS = {}
-
-ANON_MODELS = []
-
-SAMPLING_BOOST_MODELS = ["gpt-3.5-turbo", "vicuna-7b-v1.5"]
-
-# outage models won't be sampled.
-OUTAGE_MODELS = []
+SAMPLING_WEIGHTS = config.get("SAMPLING_WEIGHTS", {})
+BATTLE_TARGETS = config.get("BATTLE_TARGETS", {})
+ANON_MODELS = config.get("ANON_MODELS", [])
+SAMPLING_BOOST_MODELS = config.get("SAMPLING_BOOST_MODELS", [])
+OUTAGE_MODELS = config.get("OUTAGE_MODELS", [])
 
 
 def get_sample_weight(model, outage_models, sampling_weights, sampling_boost_models=[]):

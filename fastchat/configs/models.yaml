@@ -1,0 +1,11 @@
+SAMPLING_WEIGHTS:
+  gpt-3.5-turbo: 3
+  vicuna-7b-v1.5: 6
+  
+BATTLE_TARGETS: {}
+ANON_MODELS: []
+SAMPLING_BOOST_MODELS:
+  - gpt-3.5-turbo
+  - vicuna-7b-v1.5
+  - Phi-3-small-128k-instruct
+OUTAGE_MODELS: []

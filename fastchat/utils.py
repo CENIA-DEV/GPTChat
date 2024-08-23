@@ -173,7 +173,7 @@ def oai_moderation(text, custom_thresholds=None):
             print(f"MODERATION ERROR: {e}\nInput: {text}")
     return flagged
 
-
+# TODO add models
 def moderation_filter(text, model_list, do_moderation=False):
     # Apply moderation for below models
     MODEL_KEYWORDS = [

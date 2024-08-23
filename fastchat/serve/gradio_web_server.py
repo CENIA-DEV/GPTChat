@@ -584,6 +584,7 @@ def bot_response(
             "finish": round(finish_tstamp, 4),
             "state": state.dict(),
             "ip": get_ip(request),
+            "username": request.username,
         }
         fout.write(json.dumps(data) + "\n")
     get_remote_logger().log(data)

@@ -11,7 +11,7 @@ from enum import auto, IntEnum
 from io import BytesIO
 import os
 from typing import List, Any, Dict, Union, Tuple
-
+from constants import SYSTEM_MSG
 
 class SeparatorStyle(IntEnum):
     """Separator styles."""
@@ -1563,6 +1563,54 @@ register_conv_template(
     )
 )
 
+# Cenia to spanish model template
+# Vicuna v1.1 template
+
+
+register_conv_template(
+    Conversation(
+        name="vicuna_test",
+        system_message=SYSTEM_MSG,
+        roles=("USER", "ASSISTANT"),
+        sep_style=SeparatorStyle.ADD_COLON_TWO,
+        sep=" ",
+        sep2="</s>",
+    )
+)
+register_conv_template(
+    Conversation(
+        name="gpt-3.5-turbo",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+        max_image_size_mb=None,  # OpenAI does auto-resizing
+    )
+)
+register_conv_template(
+    Conversation(
+        name="llama-3-cenia",
+        system_message=SYSTEM_MSG,
+        system_template="<|start_header_id|>system<|end_header_id|>\n\n{system_message}<|eot_id|>",
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.LLAMA3,
+        sep="",
+        stop_str="<|eot_id|>",
+        stop_token_ids=[128001, 128009],
+    )
+)
+register_conv_template(
+    Conversation(
+        name="mistral-cenia",
+        system_message=SYSTEM_MSG,
+        system_template="[INST] {system_message}\n",
+        roles=("[INST]", "[/INST]"),
+        sep_style=SeparatorStyle.LLAMA2,
+        sep=" ",
+        sep2="</s>",
+    )
+)
+######################
 register_conv_template(
     Conversation(
         name="chinese-alpaca2",
