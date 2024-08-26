@@ -1564,22 +1564,9 @@ register_conv_template(
 )
 
 # Cenia to spanish model template
-# Vicuna v1.1 template
-
-
 register_conv_template(
     Conversation(
-        name="vicuna_test",
-        system_message=SYSTEM_MSG,
-        roles=("USER", "ASSISTANT"),
-        sep_style=SeparatorStyle.ADD_COLON_TWO,
-        sep=" ",
-        sep2="</s>",
-    )
-)
-register_conv_template(
-    Conversation(
-        name="gpt-3.5-turbo",
+        name="gpt-3.5-cenia",
         system_message=SYSTEM_MSG,
         roles=("user", "assistant"),
         sep_style=SeparatorStyle.DEFAULT,
@@ -1608,6 +1595,16 @@ register_conv_template(
         sep_style=SeparatorStyle.LLAMA2,
         sep=" ",
         sep2="</s>",
+    )
+)
+register_conv_template(
+    Conversation(
+        name="gemma-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "model"),
+        sep_style=SeparatorStyle.GEMMA,
+        sep="<end_of_turn>\n",
+        stop_str="<end_of_turn>",
     )
 )
 ######################

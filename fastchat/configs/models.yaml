@@ -1,18 +1,19 @@
 SAMPLING_WEIGHTS:
-  gpt-3.5-turbo: 0.1
-  vicuna-7b-v1.5: 6
-  Meta-Llama-3.1-8B-Instruct: 6
-  gemma-2-9b-it: 2
+  gpt-3.5-turbo: 3
+  Meta-Llama-3.1-8B-Instruct: 3
+  gemma-2-9b-it: 3
+  Phi-3.5-mini-instruct: 3
+  Mistral-7B-Instruct-v0.3: 3
   
 BATTLE_TARGETS:
-  gpt-3.5-turbo: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it"]
-  vicuna-7b-v1.5: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it"]
-  Meta-Llama-3.1-8B-Instruct: ["gemma-2-9b-it"]
-  gemma-2-9b-it:  ["Meta-Llama-3.1-8B-Instruct"]
+  gpt-3.5-turbo: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it","Mistral-7B-Instruct-v0.3","Phi-3.5-mini-instruct"]
+  Phi-3.5-mini-instruct: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it","Mistral-7B-Instruct-v0.3","gpt-3.5-turbo"]
+  Meta-Llama-3.1-8B-Instruct: ["Phi-3.5-mini-instruct","gemma-2-9b-it","Mistral-7B-Instruct-v0.3","gpt-3.5-turbo"]
+  gemma-2-9b-it:   ["Phi-3.5-mini-instruct","Meta-Llama-3.1-8B-Instruct","Mistral-7B-Instruct-v0.3","gpt-3.5-turbo"]
+  Mistral-7B-Instruct-v0.3: ["Phi-3.5-mini-instruct","Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it","gpt-3.5-turbo"]
 
-ANON_MODELS: ["Meta-Llama-3.1-8B-Instruct"]
+ANON_MODELS: []
 SAMPLING_BOOST_MODELS:
-  - vicuna-7b-v1.5
   - Phi-3-small-128k-instruct
   - Meta-Llama-3.1-8B-Instruct
-OUTAGE_MODELS: ["gpt-3.5-turbo"]
+OUTAGE_MODELS: []

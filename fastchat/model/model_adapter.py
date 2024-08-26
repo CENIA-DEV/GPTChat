@@ -1552,7 +1552,7 @@ class MistralAdapter(BaseModelAdapter):
         return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
-        return get_conv_template("mistral")
+        return get_conv_template("mistral-cenia")
 
 
 class Llama2Adapter(BaseModelAdapter):
@@ -1584,7 +1584,7 @@ class Llama3Adapter(BaseModelAdapter):
         return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
-        return get_conv_template("llama-3")
+        return get_conv_template("llama-3-cenia")
 
 
 class CuteGPTAdapter(BaseModelAdapter):
@@ -2303,7 +2303,7 @@ class GemmaAdapter(BaseModelAdapter):
         return "gemma" in model_path.lower()
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
-        return get_conv_template("gemma")
+        return get_conv_template("gemma-cenia")
 
 
 class LlavaAdapter(BaseModelAdapter):

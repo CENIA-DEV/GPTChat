@@ -43,7 +43,7 @@ CPU_ISA = os.getenv("CPU_ISA")
 # models to use config file path
 CONFIG_MODELS_FILE = os.getenv("FASTCHAT_CONFIG", "fastchat/configs/models.yaml")
 # System Spanish message
-SYSTEM_MSG = "Una conversación entre un usuario curioso y un modelo de lenguaje.El modelo de lenguaje debe responder siempre en español y proporcionar información verificada sin inventar datos."
+SYSTEM_MSG = "Una conversación entre un usuario y un modelo de lenguaje. El modelo de lenguaje debe responder siempre en español y proporcionar información verificada sin inventar datos."
 
 ##### For the controller and workers (could be overwritten through ENV variables.)
 CONTROLLER_HEART_BEAT_EXPIRATION = int(
