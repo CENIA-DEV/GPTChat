@@ -36,3 +36,8 @@ val2014
 vqa_examples
 .env
 user_pass
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

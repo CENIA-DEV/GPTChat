@@ -40,18 +40,6 @@ def load_demo(url_params, request: gr.Request):
     logger.info(f"load_demo. ip: {ip}. params: {url_params}")
 
     inner_selected = 0
-    if "arena" in url_params:
-        inner_selected = 0
-    elif "vision" in url_params:
-        inner_selected = 1
-    elif "compare" in url_params:
-        inner_selected = 1
-    elif "direct" in url_params or "model" in url_params:
-        inner_selected = 3
-    elif "leaderboard" in url_params:
-        inner_selected = 4
-    elif "about" in url_params:
-        inner_selected = 5
 
     if args.model_list_mode == "reload":
         models, all_models = get_model_list(
@@ -68,7 +56,7 @@ def load_demo(url_params, request: gr.Request):
 
     side_by_side_anony_updates = load_demo_side_by_side_anony(all_models, url_params)
 
-    return (gr.Tabs(selected=inner_selected),) + side_by_side_anony_updates
+    return side_by_side_anony_updates
 
 
 def build_demo(models, vl_models, elo_results_file, leaderboard_table_file):
@@ -94,17 +82,17 @@ window.__gradio_mode__ = "app";
         """
     text_size = gr.themes.sizes.text_lg
     with gr.Blocks(
-        title="Chat with Open Large Language Models",
+        title="Chatea en Español con distintos LLM's",
         theme=gr.themes.Default(text_size=text_size),
         css=block_css,
         head=head_js,
     ) as demo:
-        with gr.Tabs() as inner_tabs:
-            with gr.Tab("⚔️ Arena (battle)", id=0) as arena_tab:
-                arena_tab.select(None, None, None, js=load_js)
-                side_by_side_anony_list = build_side_by_side_ui_anony(models)
+        # with gr.Tabs() as inner_tabs:
+        #     with gr.Tab("⚔️ Arena (battle)", id=0) as arena_tab:
+                # arena_tab.select(None, None, None, js=load_js)
+        side_by_side_anony_list = build_side_by_side_ui_anony(models)
 
-            demo_tabs = [inner_tabs] + side_by_side_anony_list
+        demo_tabs = side_by_side_anony_list
 
             # with gr.Tab("ℹ️ About Us", id=5):
             #     about = build_about()
