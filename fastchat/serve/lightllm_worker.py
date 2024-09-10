@@ -30,9 +30,10 @@ from lightllm.server.httpserver.manager import HttpServerManager
 from lightllm.server.detokenization.manager import start_detokenization_process
 from lightllm.server.router.manager import start_router_process
 from lightllm.server.req_id_generator import ReqIDGenerator
-
+from lightllm.server.metrics.manager import start_metric_manager
 from lightllm.utils.net_utils import alloc_can_use_network_port
 from lightllm.utils.start_utils import start_submodule_processes
+from lightllm.server.metrics.manager import MetricClient
 from fastchat.utils import get_context_length, is_partial_stop
 
 app = FastAPI()
@@ -429,6 +430,37 @@ if __name__ == "__main__":
                         head : remove some head tokens to make input token len <= max_req_input_len
                         center : remove some tokens in center loc to make input token len <= max_req_input_len""",
     )
+    parser.add_argument(
+        "--nccl_port", type=int, default=28765, help="the nccl_port to build a distributed environment for PyTorch"
+    )
+    parser.add_argument("--metric_gateway", type=str, default=None, help="address for collecting monitoring metrics")
+    parser.add_argument("--job_name", type=str, default="lightllm", help="job name for monitor")
+    parser.add_argument(
+        "--grouping_key", action="append", default=[], help="grouping_key for the monitor in the form key=value"
+    )
+    parser.add_argument("--push_interval", type=int, default=10, help="interval of pushing monitoring metrics")
+    parser.add_argument(
+        "--enable_monitor_auth", action="store_true", help="Whether to open authentication for push_gateway"
+    )
+    parser.add_argument("--use_dynamic_prompt_cache", action="store_true", help="use_dynamic_prompt_cache test")
+    parser.add_argument(
+        "--router_max_wait_tokens",
+        type=int,
+        default=10,
+        help="schedule new requests after every router_max_wait_tokens decode steps.",
+    )
+    parser.add_argument("--token_healing_mode", action="store_true", help="code model infer mode")
+    parser.add_argument("--use_reward_model", action="store_true", help="use reward model")
+    parser.add_argument(
+        "--data_type",
+        type=str,
+        choices=["fp16", "float16", "bf16", "bfloat16", "fp32", "float32"],
+        default="float16",
+        help="the data type of the model weight",
+    )
+    parser.add_argument("--beam_mode", action="store_true", help="use beamsearch mode")
+    parser.add_argument("--diverse_mode", action="store_true", help="diversity generation mode")
+    parser.add_argument("--simple_constraint_mode", action="store_true", help="output constraint mode")
 
     args = parser.parse_args()
 
@@ -465,7 +497,7 @@ if __name__ == "__main__":
             batch_max_tokens = max(batch_max_tokens, args.splitfuse_block_size)
             args.batch_max_tokens = batch_max_tokens
 
-    can_use_ports = alloc_can_use_network_port(num=6 + args.tp)
+    can_use_ports = alloc_can_use_network_port(num=6 + args.tp, used_nccl_port=args.nccl_port)
 
     assert can_use_ports is not None, "Can not alloc enough free ports."
     (
@@ -474,10 +506,19 @@ if __name__ == "__main__":
         httpserver_port,
         visual_port,
         cache_port,
-        nccl_port,
+        metric_port,
     ) = can_use_ports[0:6]
-    args.nccl_port = nccl_port
     model_rpc_ports = can_use_ports[6:]
+
+    start_submodule_processes(
+        start_funcs=[
+            start_metric_manager,
+        ],
+        start_args=[(metric_port, args)],
+    )
+    global metric_client
+    metric_client = MetricClient(metric_port)
+
 
     global httpserver_manager
     httpserver_manager = HttpServerManager(
@@ -487,12 +528,13 @@ if __name__ == "__main__":
         visual_port=visual_port,
         httpserver_port=httpserver_port,
         enable_multimodal=False,
+        metric_port=metric_port,
     )
 
     start_submodule_processes(
         start_funcs=[start_router_process, start_detokenization_process],
         start_args=[
-            (args, router_port, detokenization_port, model_rpc_ports),
+            (args, router_port, detokenization_port, model_rpc_ports, metric_port),
             (args, detokenization_port, httpserver_port),
         ],
     )
