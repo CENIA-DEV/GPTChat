@@ -34,7 +34,7 @@ async def upload_json():
         bucket = storage_client.bucket(BUCKET_NAME)
 
         # Create a new blob and upload the JSON data
-        blob = bucket.blob("test_data_chat/" + filename)
+        blob = bucket.blob("data_chat/" + filename)
         await blob.upload_from_string(json_data, content_type="application/json")
 
         return jsonify({"message": f"File {filename} uploaded successfully"}), 200
