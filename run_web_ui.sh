@@ -1,2 +1,0 @@
-export REMOTE_LOGGER_URL=http://127.0.0.1:8080/upload-json
-python -m fastchat.serve.gradio_web_server_cenia --port 21004 --control http://localhost:21001 --share --register-api-endpoint-file api_endpoints.json --gradio-auth-path /GPTChat/user_pass

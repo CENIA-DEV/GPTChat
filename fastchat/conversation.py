@@ -1016,7 +1016,7 @@ register_conv_template(
 register_conv_template(
     Conversation(
         name="chatgpt",
-        system_message="You are a helpful assistant.",
+        system_message=SYSTEM_MSG,
         roles=("user", "assistant"),
         sep_style=SeparatorStyle.DEFAULT,
         sep=None,
@@ -1027,13 +1027,7 @@ register_conv_template(
 register_conv_template(
     Conversation(
         name="gpt-4-turbo-2024-04-09",
-        system_message=(
-            "You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.\n"
-            "Knowledge cutoff: 2023-11\n"
-            "Current date: {{currentDateTime}}\n\n"
-            "Image input capabilities: Enabled\n"
-            "Personality: v2"
-        ),
+        system_message=SYSTEM_MSG,
         roles=("user", "assistant"),
         sep_style=SeparatorStyle.DEFAULT,
         sep=None,
