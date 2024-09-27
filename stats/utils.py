@@ -71,15 +71,6 @@ def download_bucket_with_transfer_manager(
 
     blob_names = [blob.name for blob in bucket.list_blobs(prefix="data_chat",max_results=max_results)]
 
-    results = transfer_manager.download_many_to_path(
+    transfer_manager.download_many_to_path(
         bucket, blob_names, destination_directory=destination_directory, max_workers=workers
     )
-
-    for name, result in zip(blob_names, results):
-        # The results list is either `None` or an exception for each blob in
-        # the input list, in order.
-
-        if isinstance(result, Exception):
-            print("Failed to download {} due to exception: {}".format(name, result))
-        else:
-            print("Downloaded {} to {}.".format(name, destination_directory + name))
