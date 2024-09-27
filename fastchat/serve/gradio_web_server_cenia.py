@@ -6,7 +6,6 @@ It supports chatting with a single model or chatting with two models side-by-sid
 import argparse
 
 import gradio as gr
-
 from fastchat.serve.gradio_block_arena_anony_cenia import (
     build_side_by_side_ui_anony,
     load_demo_side_by_side_anony,
@@ -26,11 +25,12 @@ from fastchat.utils import (
     build_logger,
     get_window_url_params_js,
     get_window_url_params_with_tos_js,
-    alert_js,
     parse_gradio_auth_creds,
 )
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
+
+
 
 
 def load_demo(url_params, request: gr.Request):
@@ -56,6 +56,10 @@ def load_demo(url_params, request: gr.Request):
 
     side_by_side_anony_updates = load_demo_side_by_side_anony(all_models, url_params)
 
+    # # Update the info_component to make it visible
+    # info_component_update = hello_world()
+
+    # Return updates for all components including info_component
     return side_by_side_anony_updates
 
 
@@ -87,15 +91,13 @@ window.__gradio_mode__ = "app";
         css=block_css,
         head=head_js,
     ) as demo:
+
         # with gr.Tabs() as inner_tabs:
         #     with gr.Tab("⚔️ Arena (battle)", id=0) as arena_tab:
-                # arena_tab.select(None, None, None, js=load_js)
+        # arena_tab.select(None, None, None, js=load_js)
         side_by_side_anony_list = build_side_by_side_ui_anony(models)
 
         demo_tabs = side_by_side_anony_list
-
-            # with gr.Tab("ℹ️ About Us", id=5):
-            #     about = build_about()
 
         url_params = gr.JSON(visible=False)
 

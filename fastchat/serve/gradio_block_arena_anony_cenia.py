@@ -8,14 +8,13 @@ import time
 import yaml
 import gradio as gr
 import numpy as np
-
 from fastchat.constants import (
     MODERATION_MSG,
     CONVERSATION_LIMIT_MSG,
     SLOW_MODEL_MSG,
     BLIND_MODE_INPUT_CHAR_LEN_LIMIT,
     CONVERSATION_TURN_LIMIT,
-    CONFIG_MODELS_FILE
+    CONFIG_MODELS_FILE,
 )
 from fastchat.serve.gradio_block_arena_named import flash_buttons
 from fastchat.serve.gradio_web_server import (
@@ -37,6 +36,7 @@ from fastchat.utils import (
     build_logger,
     moderation_filter,
 )
+from stats.utils import count_country_votes
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
@@ -59,6 +59,7 @@ def load_demo_side_by_side_anony(models_, url_params):
     selector_updates = (
         gr.Markdown(visible=True),
         gr.Markdown(visible=True),
+        gr.update(visible=True),
     )
 
     return states + selector_updates
@@ -182,6 +183,7 @@ BATTLE_TARGETS = config.get("BATTLE_TARGETS", {})
 ANON_MODELS = config.get("ANON_MODELS", [])
 SAMPLING_BOOST_MODELS = config.get("SAMPLING_BOOST_MODELS", [])
 OUTAGE_MODELS = config.get("OUTAGE_MODELS", [])
+
 
 def get_sample_weight(model, outage_models, sampling_weights, sampling_boost_models=[]):
     if model in outage_models:
@@ -430,6 +432,15 @@ def build_side_by_side_ui_anony(models):
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
     with gr.Group(elem_id="share-region-anony"):
+        with gr.Accordion("📊 Gráfico de participación"):
+            gr.BarPlot(
+                value=count_country_votes,
+                x="Países",
+                y="Votos",
+                every=10.0,
+                x_label_angle=45,
+                key="grafico-votos",
+            )
         with gr.Accordion(
             f"🔍 Expanda para ver las descripciones de {len(models)} modelos",
             open=False,
