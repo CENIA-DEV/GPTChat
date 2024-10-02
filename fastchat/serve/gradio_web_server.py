@@ -74,13 +74,14 @@ It must not be used for any illegal, harmful, violent, racist, or sexual purpose
 Please do not upload any private information.
 The service collects user dialogue data, including both text and images, and reserves the right to distribute it under a Creative Commons Attribution (CC-BY) or a similar license.
 
-#### Please report any bug or issue to our [Mail](sebastian.donoso@cenia.cl).
+#### Please report any bug or issue to our [Slack](https://join.slack.com/share/enQtNzgxMTk4NzU4NzM1MC1jZjFhNjIxYTUxZjgwYTMyMWM2NzUzOGFiZTNkMTU0OTY0ZDg3ODc4MzA0MTkzZWE3ZDc3ZDJjZGY0Mjk1ODZi).
 
 ### Acknowledgment
 We thank to [Sebastián Donoso B](https://github.com/sdonoso)
 
 <div class="sponsor-image-about">
     <img decoding="async" src="https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png" alt="cenia">
+    <img decoding="async" src="https://storage.googleapis.com/public-gptlas-assets/logo-gptlas-2.png" alt="gptlas">
 </div>
 """
 

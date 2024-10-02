@@ -25,14 +25,20 @@ country_count = {
     "Peru": 0,
     "Uruguay": 0,
     "Venezuela": 0,
+    "España": 0,
 }
 
 countries = {
-    "Chile": ["gptlas-lcc", "gptlas-cenia", "gptlas-chile"],
-    "Argentina": ["gptlas-cordoba"],
-    "Mexico": ["gptlas-infotec"],
+    "Chile": ["gptlas-lcc", "gptlas-cenia", "gptlas-chile", "gptlas-chi"],
+    "Argentina": ["gptlas-cordoba", "gptlas-arg"],
+    "Mexico": ["gptlas-infotec", "gptlas-mex"],
     "Uruguay": ["gptlas-uru"],
     "Ecuador": ["gptlas-ecu"],
+    "Colombia": ["gptlas-col"],
+    "Peru": ["gptlas-pe"],
+    "España": ["gptlas-es"],
+    "Costa Rica": ["gptlas-cr"],
+    "Paraguay": ["gptlas-pa"],
 }
 
 types = {
