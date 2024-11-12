@@ -220,14 +220,30 @@ if __name__ == "__main__":
     auth = None
     if args.gradio_auth_path is not None:
         auth = parse_gradio_auth_creds(args.gradio_auth_path)
+    
+    if len(models) <= 1:
+        # Construye la página de mantenimiento
+        with gr.Blocks(title="Página en Mantención") as demo:
+            gr.Markdown("""
+            # 🚧 Página en Mantención
+            Estamos realizando algunas mejoras. Por favor, vuelve más tarde.
+            """)
+    else:
+        # Construye la interfaz normal
+        demo = build_demo(
+            models,
+            all_vl_models,
+            args.elo_results_file,
+            args.leaderboard_table_file,
+        )
 
-    # Launch the demo
-    demo = build_demo(
-        models,
-        all_vl_models,
-        args.elo_results_file,
-        args.leaderboard_table_file,
-    )
+    # # Launch the demo
+    # demo = build_demo(
+    #     models,
+    #     all_vl_models,
+    #     args.elo_results_file,
+    #     args.leaderboard_table_file,
+    # )
     demo.queue(
         default_concurrency_limit=args.concurrency_count,
         status_update_rate=10,

@@ -5,6 +5,7 @@ from collections import deque
 import tqdm
 from collections import Counter
 
+
 def _serialize_json(data):
     # Serialize JSON with sorted keys and no whitespace
     return json.dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -21,16 +22,45 @@ types = {
     "upvote",
     "tievote",
 }
-countries = {"Chile":["gptlas-lcc","gptlas-cenia","gptlas-chile"],"Argentina":["gptlas-cordoba"],"Mexico":["gptlas-infotec"],"Uruguay":["gptlas-uru"]}
+countries = {
+    "Chile": ["gptlas-lcc", "gptlas-cenia", "gptlas-chile", "gptlas-chi"],
+    "Argentina": ["gptlas-cordoba", "gptlas-arg"],
+    "Mexico": ["gptlas-infotec", "gptlas-mex"],
+    "Uruguay": ["gptlas-uru"],
+    "Colombia": ["gptlas-col-uand", "gptlas-col"],
+    "Ecuador": ["gptlas-ecu"],
+    "Perú": ["gptlas-pe"],
+    "España": ["gptlas-es"],
+    "Costa Rica": ["gptlas-cr"],
+    "Paraguay": ["gptlas-pa"],
+}
 
-country_count = {'Argentina':0, 'Bolivia':0, 'Brazil':0, 'Chile':0, 'Colombia':0, 'Costa Rica':0,
-    'Cuba':0, 'Dominican Republic':0, 'Ecuador':0, 'El Salvador':0, 'Guatemala':0,
-    'Haiti':0, 'Honduras':0, 'Mexico':0, 'Nicaragua':0, 'Panama':0, 'Paraguay':0,
-    'Peru':0, 'Uruguay':0, 'Venezuela':0}
+country_count = {
+    "Argentina": 0,
+    "Bolivia": 0,
+    "Brazil": 0,
+    "Chile": 0,
+    "Colombia": 0,
+    "Costa Rica": 0,
+    "Cuba": 0,
+    "Dominican Republic": 0,
+    "Ecuador": 0,
+    "El Salvador": 0,
+    "Guatemala": 0,
+    "Haiti": 0,
+    "Honduras": 0,
+    "Mexico": 0,
+    "Nicaragua": 0,
+    "Panama": 0,
+    "Paraguay": 0,
+    "Peru": 0,
+    "Uruguay": 0,
+    "Venezuela": 0,
+    "España":0
+}
 
 cc = []
 chat_dict = {}
-
 
 
 def process_record(r):
@@ -41,20 +71,19 @@ def process_record(r):
     start = r.pop("start", None)
     finish = r.pop("finish", None)
 
-
     assert mtype in types
     if mtype == "chat":
         return
     elif mtype in ("leftvote", "rightvote", "bothbad_vote", "tievote"):
         for country, usernames in countries.items():
-             if username in usernames:
+            if username in usernames:
                 country_count[country] += 1
                 break
         vote_time_data = {
             "timestamp": tstamp,
             "type": mtype,
             "ip": ip,
-            "username":username
+            "username": username,
         }
         return vote_time_data
 
@@ -89,7 +118,7 @@ def process_file(infile: str, outfile: str):
                     traceback.print_exc()
 
 
-def count_votes(path:str):
+def count_votes(path: str):
     today = datetime.datetime.today().isoformat().split("T", 1)[0]
     # sort it to make sure the date is continuous for each server
     filelist = sorted(glob.glob(path))
@@ -102,7 +131,7 @@ def count_votes(path:str):
 
     for f in tqdm.tqdm(filelist):
         process_file(f, "output.jsonl")
-    with open("country_count.json","a") as outfile:
+    with open("country_count.json", "a") as outfile:
         outfile.write(json.dumps(country_count))
 
     return country_count

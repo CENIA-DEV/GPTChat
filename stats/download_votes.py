@@ -2,7 +2,7 @@ import time
 from google.cloud.storage import Client, transfer_manager
 
 def download_bucket_with_transfer_manager(
-    bucket_name, destination_directory="", workers=8, max_results=1000
+    bucket_name, destination_directory="", workers=8, max_results=10000000
 ):
     """Download all of the blobs in a bucket, concurrently in a process pool.
 
@@ -21,7 +21,7 @@ def download_bucket_with_transfer_manager(
         for blob in bucket.list_blobs(prefix="data_chat", max_results=max_results)
     ]
 
-    transfer_manager.download_many_to_path(
+    return transfer_manager.download_many_to_path(
         bucket,
         blob_names,
         destination_directory=destination_directory,
