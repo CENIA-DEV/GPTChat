@@ -2,6 +2,7 @@
 
 # Define the log directory
 export LOGDIR=/home/sdonoso/projects/GPTChat/logs
+export HF_HOME=/workspace1/sdonoso/hfcache
 
 # Define the path to the conda.sh script
 CONDA_SH="/home/sdonoso/anaconda3/etc/profile.d/conda.sh"
@@ -61,7 +62,7 @@ mkdir -p "$LOGDIR"
 
 # Create a new tmux session for the controller
 echo "Starting controller..."
-tmux new-session -d -s controller "source $CONDA_SH && conda activate fastchat-final && python3 -m fastchat.serve.controller --host localhost --port 21001 2>&1 | tee $LOGDIR/controller.log; bash"
+tmux new-session -d -s controller "export HF_HOME=/workspace1/sdonoso/hfcache && source $CONDA_SH && conda activate fastchat-final && python3 -m fastchat.serve.controller --host localhost --port 21001 2>&1 | tee $LOGDIR/controller.log; bash"
 
 # Wait for controller to start
 sleep 5
@@ -76,10 +77,10 @@ start_model_worker() {
     if ! check_port $port; then
         echo "Error: Port $port is already in use"
         return 1
-    }
+    fi
     
     echo "Starting $session_name on GPU $gpu_id, port $port..."
-    tmux new-session -d -s $session_name "source $CONDA_SH && conda activate fastchat-final && CUDA_VISIBLE_DEVICES=$gpu_id python3 -m fastchat.serve.vllm_worker \
+    tmux new-session -d -s $session_name "export HF_HOME=/workspace1/sdonoso/hfcache && source $CONDA_SH && conda activate fastchat-final && CUDA_VISIBLE_DEVICES=$gpu_id python3 -m fastchat.serve.vllm_worker \
         --model-path $model_path \
         --controller http://localhost:21001 \
         --port $port \
