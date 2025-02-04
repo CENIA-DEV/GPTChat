@@ -41,3 +41,13 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Carpeta de configuración de Docker
+docker/
+
+# Carpetas sensibles
+.env
+application_default_credentials.json
+api_endpoint.json
+
+*Zone.Identifier

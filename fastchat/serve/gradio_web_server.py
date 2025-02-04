@@ -10,6 +10,9 @@ import json
 import os
 import random
 import time
+from flask import Flask, request, jsonify
+from google.cloud import storage
+import json
 import uuid
 
 import gradio as gr
@@ -142,6 +145,33 @@ class State:
         if self.is_vision:
             base.update({"has_csam_image": self.has_csam_image})
         return base
+    
+def send_to_remote_server(data):
+    """Guarda los datos en un bucket de Google Cloud Storage."""
+
+    storage_client = storage.Client()
+    BUCKET_NAME = os.getenv("BUCKET_NAME")
+
+    try:
+        if not data:
+            return {"error": "No JSON data received", "status": 400}
+
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"uploaded_data_{timestamp}_{data['states'][0]['conv_id']}_{data['states'][1]['conv_id']}.json"
+
+        json_data = json.dumps(data, ensure_ascii=False)
+
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob("data_chat/" + filename)
+        blob.upload_from_string(json_data, content_type="application/json")
+        
+        logger.info(f"File {filename} uploaded successfully, status: 200")
+
+        return {"message": f"File {filename} uploaded successfully", "status": 200}
+
+    except Exception as e:
+        logger.error(f"Error: {str(e)}, status: 500")
+        return {"error": str(e), "status": 500}
 
 
 def set_global_vars(controller_url_, enable_moderation_, use_remote_storage_):
@@ -474,7 +504,7 @@ def bot_response(
         )
     else:
         # Remove system prompt for API-based models unless specified
-        custom_system_prompt = model_api_dict.get("custom_system_prompt", False)
+        custom_system_prompt = model_api_dict.get("custom_system_prompt", True)
         if not custom_system_prompt:
             conv.set_system_message("")
 
@@ -579,7 +609,7 @@ def bot_response(
             "ip": get_ip(request),
             "username": request.username,
         }
-        fout.write(json.dumps(data) + "\n")
+        fout.write(json.dumps(data) + "\n")    
     get_remote_logger().log(data)
 
 

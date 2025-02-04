@@ -479,7 +479,6 @@ class Conversation:
                     ret.append(text)
                 else:
                     ret.append(msg)
-
         return ret
 
     def to_anthropic_vision_api_messages(self):
@@ -1557,22 +1556,22 @@ register_conv_template(
     )
 )
 
-# Cenia to spanish model template
+######################################## APIS CENIA ########################################
+
 register_conv_template(
     Conversation(
-        name="gpt-3.5-cenia",
-        system_message=SYSTEM_MSG,
-        roles=("user", "assistant"),
+        name="gemini-2.0-cenia",
+        roles=("user", "model"),
         sep_style=SeparatorStyle.DEFAULT,
         sep=None,
-        max_image_size_mb=None,  # OpenAI does auto-resizing
+        system_message=SYSTEM_MSG,
     )
 )
 register_conv_template(
     Conversation(
         name="llama-3-cenia",
         system_message=SYSTEM_MSG,
-        system_template="<|start_header_id|>system<|end_header_id|>\n\n{system_message}<|eot_id|>",
+        system_template=f"<|start_header_id|>system<|end_header_id|>\n\n{SYSTEM_MSG}<|eot_id|>",
         roles=("user", "assistant"),
         sep_style=SeparatorStyle.LLAMA3,
         sep="",
@@ -1584,7 +1583,7 @@ register_conv_template(
     Conversation(
         name="mistral-cenia",
         system_message=SYSTEM_MSG,
-        system_template="[INST] {system_message}\n",
+        system_template=f"[INST] {SYSTEM_MSG}\n",
         roles=("[INST]", "[/INST]"),
         sep_style=SeparatorStyle.LLAMA2,
         sep=" ",
@@ -1593,15 +1592,37 @@ register_conv_template(
 )
 register_conv_template(
     Conversation(
-        name="gemma-cenia",
+        name="claude-3-5-sonnet-cenia",
         system_message=SYSTEM_MSG,
-        roles=("user", "model"),
-        sep_style=SeparatorStyle.GEMMA,
-        sep="<end_of_turn>\n",
-        stop_str="<end_of_turn>",
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+        max_image_size_mb=5 / 1.5,
     )
 )
-######################
+register_conv_template(
+    Conversation(
+        name="gpt-4o-mini-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+        max_image_size_mb=None,  # OpenAI does auto-resizing
+    )
+)
+register_conv_template(
+    Conversation(
+        name="gpt-3.5-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+        max_image_size_mb=None,  # OpenAI does auto-resizing
+    )
+)
+
+######################################## APIS CENIA ########################################
+
 register_conv_template(
     Conversation(
         name="chinese-alpaca2",

@@ -155,6 +155,12 @@ def get_api_provider_stream_iter(
         stream_iter = vertex_api_stream_iter(
             model_name, prompt, temperature, top_p, max_new_tokens
         )
+    elif model_api_dict["api_type"] == "mistral_vertex":
+        prompt = conv.to_vertex_api_messages()
+        stream_iter = mistral_vertex_api_stream_iter(
+            model_name, prompt, temperature, top_p, max_new_tokens
+        )
+
     elif model_api_dict["api_type"] == "yandexgpt":
         # note: top_p parameter is unused by yandexgpt
 
@@ -497,8 +503,8 @@ def anthropic_message_api_stream_iter(
 
     if vertex_ai:
         client = anthropic.AnthropicVertex(
-            region=os.environ["GCP_LOCATION"],
-            project_id=os.environ["GCP_PROJECT_ID"],
+            region=os.environ["GCP_LOCATION_ANTHROPIC"],
+            project_id=os.environ["GCP_PROJECT_ID_ANTHROPIC"],
             max_retries=5,
         )
     else:
@@ -1061,6 +1067,70 @@ def vertex_api_stream_iter(model_name, messages, temperature, top_p, max_new_tok
         data = {
             "text": ret,
             "error_code": 0,
+        }
+        yield data
+
+def mistral_vertex_api_stream_iter(model_name, messages, temperature, top_p, max_new_tokens):
+
+    from mistralai_gcp import MistralGoogleCloud
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    # Configuración del cliente
+    region = os.environ.get("GCP_LOCATION")
+    project_id = os.environ.get("GCP_PROJECT_ID")
+
+    client = MistralGoogleCloud(region=region, project_id=project_id)
+
+    # Parámetros para la generación
+    gen_params = {
+        "model": model_name,
+        "prompt": messages,
+        "temperature": temperature,
+        "top_p": top_p,
+        "max_new_tokens": max_new_tokens,
+    }
+    logger.info(f"==== request ====\n{gen_params}")
+
+    # Convertir mensajes en el formato esperado
+    new_messages = [
+        {"role": "user", "content": message} for message in messages if isinstance(message, str)
+    ]
+    print("Mensajes procesados:", new_messages)
+
+    try:
+        # Flujo de respuesta
+        res = client.chat.stream(
+            model=model_name,
+            temperature=temperature,
+            messages=new_messages,
+            max_tokens=max_new_tokens,
+            top_p=top_p,
+        )
+
+        text = ""
+        for chunk in res:
+            try:
+                delta_content = chunk.data.choices[0].delta.content
+                if delta_content is not None:
+                    text += delta_content
+                    data = {
+                        "text": text,
+                        "error_code": 0,  # Código de éxito
+                    }
+                    yield data
+            except (AttributeError, IndexError, KeyError) as e:
+                data = {
+                    "text": f"Error en chunk: {e}",
+                    "error_code": 1,  # Código de error
+                }
+                yield data
+
+    except Exception as e:
+        data = {
+            "text": text,
+            "error_code": 0,  # Código de error
         }
         yield data
 

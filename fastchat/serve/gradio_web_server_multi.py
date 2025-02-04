@@ -53,7 +53,6 @@ logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
 def load_demo(url_params, request: gr.Request):
     global models, all_models, vl_models, all_vl_models
-
     ip = get_ip(request)
     logger.info(f"load_demo. ip: {ip}. params: {url_params}")
 

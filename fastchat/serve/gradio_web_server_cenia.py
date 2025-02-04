@@ -221,7 +221,7 @@ if __name__ == "__main__":
     if args.gradio_auth_path is not None:
         auth = parse_gradio_auth_creds(args.gradio_auth_path)
     
-    if len(models) <= 1:
+    if len(models) <= -1:
         # Construye la página de mantenimiento
         with gr.Blocks(title="Página en Mantención") as demo:
             gr.Markdown("""

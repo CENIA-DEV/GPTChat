@@ -1,21 +1,22 @@
 SAMPLING_WEIGHTS:
-  gpt-3.5-turbo: 3
-  Meta-Llama-3.1-8B-Instruct: 3
-  gemma-2-9b-it: 3
-  Phi-3.5-mini-instruct: 3
-  Mistral-7B-Instruct-v0.3: 3
+  gemini-2.0-flash-exp: 3
+  llama-3.2-90b-vision-instruct-maas: 3
+  mistral-large-2411 : 3
+  claude-3-5-sonnet@20240620 : 3
+  gpt-4o-mini : 3
   
 BATTLE_TARGETS:
-  gpt-3.5-turbo: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it","Mistral-7B-Instruct-v0.3","Phi-3.5-mini-instruct"]
-  Phi-3.5-mini-instruct: ["Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it","Mistral-7B-Instruct-v0.3","gpt-3.5-turbo"]
-  Meta-Llama-3.1-8B-Instruct: ["Phi-3.5-mini-instruct","gemma-2-9b-it","Mistral-7B-Instruct-v0.3","gpt-3.5-turbo"]
-  gemma-2-9b-it:   ["Phi-3.5-mini-instruct","Meta-Llama-3.1-8B-Instruct","Mistral-7B-Instruct-v0.3","gpt-3.5-turbo"]
-  Mistral-7B-Instruct-v0.3: ["Phi-3.5-mini-instruct","Meta-Llama-3.1-8B-Instruct","gemma-2-9b-it","gpt-3.5-turbo"]
+  gemini-2.0-flash-exp: ["llama-3.2-90b-vision-instruct-maas", "mistral-large-2411", "claude-3-5-sonnet@20240620", "gpt-4o-mini"]
+  llama-3.2-90b-vision-instruct-maas: ["gemini-2.0-flash-exp", "mistral-large-2411", "claude-3-5-sonnet@20240620", "gpt-4o-mini"]
+  mistral-large-2411: ["gemini-2.0-flash-exp", "llama-3.2-90b-vision-instruct-maas", "claude-3-5-sonnet@20240620", "gpt-4o-mini"]
+  claude-3-5-sonnet@20240620: ["gemini-2.0-flash-exp", "llama-3.2-90b-vision-instruct-maas", "mistral-large-2411", "gpt-4o-mini"]
+  gpt-4o-mini: ["gemini-2.0-flash-exp", "llama-3.2-90b-vision-instruct-maas", "mistral-large-2411", "claude-3-5-sonnet@20240620"]
 
 ANON_MODELS: []
 SAMPLING_BOOST_MODELS:
-  - Phi-3-small-128k-instruct
-  - Meta-Llama-3.1-8B-Instruct
-  - gemma-2-9b-it
-  - Mistral-7B-Instruct-v0.3
+  - gemini-2.0-flash-exp
+  - llama-3.2-90b-vision-instruct-maas
+  - mistral-large-2411
+  - claude-3-5-sonnet@20240620
+  - gpt-4o-mini
 OUTAGE_MODELS: []

@@ -65,6 +65,7 @@ ANTHROPIC_MODEL_LIST = (
     "claude-3-opus-20240229",
     "claude-instant-1",
     "claude-instant-1.2",
+    "claude-3-5-sonnet@20240620"
 )
 
 OPENAI_MODEL_LIST = (
@@ -85,6 +86,7 @@ OPENAI_MODEL_LIST = (
     "im-also-a-good-gpt2-chatbot",
     "im-a-good-gpt2-chatbot",
     "gpt-4o-2024-05-13",
+    "gpt-4o-mini"
 )
 
 
@@ -1118,6 +1120,8 @@ class ChatGPTAdapter(BaseModelAdapter):
             return get_conv_template("gpt-4-turbo-2024-04-09")
         if "gpt2-chatbot" in model_path:
             return get_conv_template("gpt-4-turbo-2024-04-09")
+        if "gpt-4o-mini" in model_path:
+            return get_conv_template("gpt-4o-mini-cenia")
         if "gpt-4o" in model_path:
             return get_conv_template("gpt-4-turbo-2024-04-09")
         return get_conv_template("chatgpt")
@@ -1164,6 +1168,8 @@ class ClaudeAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         if "claude-3-haiku" in model_path:
             return get_conv_template("claude-3-haiku-20240307")
+        if "claude-3-5-sonnet@20240620" in model_path:
+            return get_conv_template("claude-3-5-sonnet-cenia")
         if "claude-3-sonnet" in model_path:
             return get_conv_template("claude-3-sonnet-20240229")
         if "claude-3-5-sonnet" in model_path:
@@ -2202,6 +2208,9 @@ class GeminiAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         if "gemini-1.5-pro" in model_path:
             return get_conv_template("gemini-1.5-pro")
+        if "gemini-2.0" in model_path:
+            return get_conv_template("gemini-2.0-cenia")
+        
         return get_conv_template("gemini")
 
 

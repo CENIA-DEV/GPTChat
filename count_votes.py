@@ -42,7 +42,7 @@ def process_record(r):
         return
     elif mtype in ("leftvote", "rightvote", "bothbad_vote", "tievote"):
         for country, usernames in countries.items():
-             if username in usernames:
+            if username in usernames:
                 cc.append(country) 
                 break
         vote_time_data = {

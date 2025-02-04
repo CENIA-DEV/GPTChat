@@ -30,6 +30,7 @@ from fastchat.serve.gradio_web_server import (
     acknowledgment_md,
     get_ip,
     get_model_description_md,
+    send_to_remote_server,
 )
 from fastchat.serve.remote_logger import get_remote_logger
 from fastchat.utils import (
@@ -76,6 +77,7 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
             "username": request.username,
         }
         fout.write(json.dumps(data) + "\n")
+    send_to_remote_server(data)
     get_remote_logger().log(data)
 
     gr.Info(
@@ -289,7 +291,7 @@ def add_text(
     all_conv_text = (
         all_conv_text_left[-1000:] + all_conv_text_right[-1000:] + "\nuser: " + text
     )
-    flagged = moderation_filter(all_conv_text, model_list, do_moderation=True)
+    flagged = moderation_filter(all_conv_text, model_list, do_moderation=True) ###############################################################################
     if flagged:
         logger.info(f"violate moderation (anony). ip: {ip}. text: {text}")
         # overwrite the original text

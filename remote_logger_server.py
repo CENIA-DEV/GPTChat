@@ -4,6 +4,7 @@ import dotenv
 from flask import Flask, request, jsonify
 from google.cloud import storage
 from datetime import datetime
+import os
 
 dotenv.load_dotenv()
 app = Flask(__name__)
@@ -14,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 storage_client = storage.Client()
 
-BUCKET_NAME = "gpt-las-chat"
-
+BUCKET_NAME = "chat-arena-data"
 
 @app.route("/upload-json", methods=["POST"])
 async def upload_json():
