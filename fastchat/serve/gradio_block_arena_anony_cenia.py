@@ -37,7 +37,8 @@ from fastchat.utils import (
     build_logger,
     moderation_filter,
 )
-from stats.utils import count_country_votes
+# from stats.utils import count_country_votes
+from stats_gcp.utils import count_country_votes
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
@@ -68,15 +69,24 @@ def load_demo_side_by_side_anony(models_, url_params):
 
 def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     with open(get_conv_log_filename(), "a") as fout:
+        # data = {
+        #     "tstamp": round(time.time(), 4),
+        #     "type": vote_type,
+        #     "models": [x for x in model_selectors],
+        #     "states": [x.dict() for x in states],
+        #     "ip": get_ip(request),
+        #     "username": request.username,
+        # }
         data = {
             "tstamp": round(time.time(), 4),
             "type": vote_type,
-            "models": [x for x in model_selectors],
+            "models": [x.dict()["template_name"] for x in states],
             "states": [x.dict() for x in states],
             "ip": get_ip(request),
             "username": request.username,
         }
         fout.write(json.dumps(data) + "\n")
+    print(model_selectors)
     send_to_remote_server(data)
     get_remote_logger().log(data)
 
@@ -252,7 +262,6 @@ def add_text(
     logger.info(f"add_text (anony). ip: {ip}. len: {len(text)}")
     states = [state0, state1]
     model_selectors = [model_selector0, model_selector1]
-
     # Init states if necessary
     if states[0] is None:
         assert states[1] is None
@@ -264,7 +273,9 @@ def add_text(
             SAMPLING_WEIGHTS,
             SAMPLING_BOOST_MODELS,
         )
-        print(model_left, model_right)
+        model_selectors[0] = model_left
+        model_selectors[1] = model_right
+        print(model_selectors)
         states = [
             State(model_left),
             State(model_right),
@@ -437,9 +448,9 @@ def build_side_by_side_ui_anony(models):
         with gr.Accordion("📊 Gráfico de participación"):
             gr.BarPlot(
                 value=count_country_votes,
-                x="Países",
+                x="Usuarios",
                 y="Votos",
-                every=10.0,
+                every=60.0,
                 x_label_angle=45,
                 key="grafico-votos",
             )

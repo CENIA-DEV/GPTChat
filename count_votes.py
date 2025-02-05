@@ -86,13 +86,13 @@ def process_file(infile: str, outfile: str):
 
 today = datetime.datetime.today().isoformat().split("T", 1)[0]
 # sort it to make sure the date is continuous for each server
-filelist = sorted(glob.glob("/home/sebastiandonoso/GPTChat/logs/202*-*-*-conv.json"))
+filelist = sorted(glob.glob("202*-*-*-conv.json"))
 # filelist = [
 #     f for f in filelist if today not in f
 # ]  # skip today because date could be partial
 
 # TODO: change this to select different range of data
-filelist = [f for f in filelist if "2024" in f]
+filelist = [f for f in filelist if "2025" in f]
 
 for f in tqdm.tqdm(filelist):
     process_file(f, "output.jsonl")
