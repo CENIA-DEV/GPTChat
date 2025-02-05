@@ -193,6 +193,39 @@ def get_conv_log_filename(is_vision=False, has_csam_image=False):
 
     return name
 
+def get_secret_value(project_id: str, secret_id: str, version_id: str = "latest") -> str:
+    from google.cloud import secretmanager
+    """
+    Obtiene el contenido de un secreto desde Google Secret Manager.
+    :param project_id: ID del proyecto de GCP.
+    :param secret_id: Nombre del secreto en Secret Manager.
+    :param version_id: Versión del secreto (por defecto, 'latest').
+    :return: Contenido del secreto como cadena de texto.
+    """
+    # Crear el cliente de Secret Manager.
+    client = secretmanager.SecretManagerServiceClient()
+
+    # Construir el nombre completo del secreto con versión.
+    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
+
+    # Acceder al contenido del secreto.
+    response = client.access_secret_version(request={"name": name})
+
+    # Retornar el payload como texto.
+    secret_value = response.payload.data.decode("UTF-8")  # Decodificar si es texto.
+    return secret_value
+
+
+def load_api_endpoints_from_gcp(project_id: str, secret_id: str) -> dict:
+    """
+    Carga y retorna los endpoints API desde Google Secret Manager.
+    """
+    try:
+        secret_content = get_secret_value(project_id, secret_id)
+        return json.loads(secret_content)
+    except Exception as e:
+        print(f"Error al obtener el secreto de Secret Manager: {e}")
+        return {}
 
 def get_model_list(controller_url, register_api_endpoint_file, vision_arena):
     global api_endpoint_info
@@ -211,8 +244,21 @@ def get_model_list(controller_url, register_api_endpoint_file, vision_arena):
     else:
         models = []
 
+    if register_api_endpoint_file == "register_gcp":
+        # Cargar los endpoints desde Secret Manager
+        GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
+        SECRET_ID = os.getenv("SECRET_ID")
+        api_endpoint_info = load_api_endpoints_from_gcp(GCP_PROJECT_ID, SECRET_ID)
+        for mdl, mdl_dict in api_endpoint_info.items():
+            mdl_vision = mdl_dict.get("vision-arena", False)
+            mdl_text = mdl_dict.get("text-arena", True)
+            if vision_arena and mdl_vision:
+                models.append(mdl)
+            if not vision_arena and mdl_text:
+                models.append(mdl)
+
     # Add models from the API providers
-    if register_api_endpoint_file:
+    elif register_api_endpoint_file:
         api_endpoint_info = json.load(open(register_api_endpoint_file))
         for mdl, mdl_dict in api_endpoint_info.items():
             mdl_vision = mdl_dict.get("vision-arena", False)

@@ -36,7 +36,8 @@ RUN pip3 install --no-cache-dir \
     flask \
     google-cloud-storage \
     python-dotenv \
-    gunicorn
+    gunicorn \
+    google-cloud-secret-manager
 
 # Establecer el directorio de trabajo
 WORKDIR /app
