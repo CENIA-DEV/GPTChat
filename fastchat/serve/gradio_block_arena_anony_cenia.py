@@ -77,16 +77,17 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
         #     "ip": get_ip(request),
         #     "username": request.username,
         # }
+        user = request.session.get("user")
         data = {
             "tstamp": round(time.time(), 4),
             "type": vote_type,
             "models": [x.dict()["template_name"] for x in states],
             "states": [x.dict() for x in states],
             "ip": get_ip(request),
-            "username": request.username,
+            "username": user["email"] if user else None,
         }
         fout.write(json.dumps(data) + "\n")
-    print(model_selectors)
+
     send_to_remote_server(data)
     get_remote_logger().log(data)
 
@@ -275,7 +276,6 @@ def add_text(
         )
         model_selectors[0] = model_left
         model_selectors[1] = model_right
-        print(model_selectors)
         states = [
             State(model_left),
             State(model_right),
@@ -450,7 +450,7 @@ def build_side_by_side_ui_anony(models):
                 value=count_country_votes,
                 x="Usuarios",
                 y="Votos",
-                every=60.0,
+                every=120.0,
                 x_label_angle=45,
                 key="grafico-votos",
             )

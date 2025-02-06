@@ -4,7 +4,7 @@ It supports chatting with a single model or chatting with two models side-by-sid
 """
 
 import argparse
-
+import uvicorn
 import gradio as gr
 from fastchat.serve.gradio_block_arena_anony_cenia import (
     build_side_by_side_ui_anony,
@@ -28,9 +28,9 @@ from fastchat.utils import (
     parse_gradio_auth_creds,
 )
 
+from fastchat.serve.oauth import app as oauth_app, get_user
+
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
-
-
 
 
 def load_demo(url_params, request: gr.Request):
@@ -85,6 +85,18 @@ window.__gradio_mode__ = "app";
 </script>
         """
     text_size = gr.themes.sizes.text_lg
+    js_check_session = """
+<script>
+    setInterval(async function() {
+        const response = await fetch("/check-session");
+        const data = await response.json();
+        if (!data.authenticated) {
+            window.location.href = "/login-demo";
+        }
+    }, 5000); // Verifica cada 5 segundos
+</script>
+"""
+
     with gr.Blocks(
         title="Chatea en Español con distintos LLM's",
         theme=gr.themes.Default(text_size=text_size),
@@ -110,6 +122,12 @@ window.__gradio_mode__ = "app";
             demo_tabs,
             js=load_js,
         )
+        # 🔹 Inyectamos el JavaScript en la interfaz
+        gr.HTML(js_check_session)
+
+        # 🔹 Agregamos un botón de "Cerrar sesión"
+        with gr.Row():
+            gr.Button("Cerrar sesión", link="/logout")
 
     return demo
 
@@ -221,7 +239,7 @@ if __name__ == "__main__":
     if args.gradio_auth_path is not None:
         auth = parse_gradio_auth_creds(args.gradio_auth_path)
     
-    if len(models) <= -1:
+    if len(models) <= 0:
         # Construye la página de mantenimiento
         with gr.Blocks(title="Página en Mantención") as demo:
             gr.Markdown("""
@@ -244,16 +262,20 @@ if __name__ == "__main__":
     #     args.elo_results_file,
     #     args.leaderboard_table_file,
     # )
-    demo.queue(
-        default_concurrency_limit=args.concurrency_count,
-        status_update_rate=10,
-        api_open=False,
-    ).launch(
-        server_name=args.host,
-        server_port=args.port,
-        share=args.share,
-        max_threads=200,
-        auth=auth,
-        root_path=args.gradio_root_path,
-        show_api=False,
-    )
+    # demo.queue(
+    #     default_concurrency_limit=args.concurrency_count,
+    #     status_update_rate=10,
+    #     api_open=False,
+    # ).launch(
+    #     server_name=args.host,
+    #     server_port=args.port,
+    #     share=args.share,
+    #     max_threads=200,
+    #     auth=auth,
+    #     root_path=args.gradio_root_path,
+    #     show_api=False,
+    # )
+
+    app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=get_user)
+
+    uvicorn.run(app, host=args.host, port=args.port)

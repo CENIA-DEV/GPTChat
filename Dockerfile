@@ -37,7 +37,8 @@ RUN pip3 install --no-cache-dir \
     google-cloud-storage \
     python-dotenv \
     gunicorn \
-    google-cloud-secret-manager
+    google-cloud-secret-manager \
+    authlib
 
 # Establecer el directorio de trabajo
 WORKDIR /app
