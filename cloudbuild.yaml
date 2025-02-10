@@ -1,0 +1,39 @@
+steps:
+  # Paso 1: Construcción de la imagen Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest', '.']
+
+  # Paso 2: Subida de la imagen a Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest']
+
+  # Paso 3: Despliegue del Controller en Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'fastchat-controller'
+      - '--image=us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=FASTCHAT_CMD=python3 -m fastchat.serve.controller --host 0.0.0.0 --port 8080'
+      - '--port=8080'
+      - '--memory=512Mi'
+      - '--min-instances=1'
+
+  # Paso 4: Despliegue del Web UI en Cloud Run cargando env-chat-arena desde Secret Manager
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'fastchat-webui'
+      - '--image=us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--memory=2Gi'
+      - '--set-secrets=env-chat-arena=env-chat-arena:latest'
+
+images:
+  - 'us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest'
