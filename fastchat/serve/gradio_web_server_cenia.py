@@ -2,10 +2,12 @@
 The gradio demo server with multiple tabs.
 It supports chatting with a single model or chatting with two models side-by-side.
 """
-
+import os
 import argparse
 import uvicorn
+from fastapi import FastAPI
 import gradio as gr
+from starlette.middleware.sessions import SessionMiddleware
 from fastchat.serve.gradio_block_arena_anony_cenia import (
     build_side_by_side_ui_anony,
     load_demo_side_by_side_anony,
@@ -57,7 +59,7 @@ def load_demo(url_params, request: gr.Request):
     side_by_side_anony_updates = load_demo_side_by_side_anony(all_models, url_params)
 
     # # Update the info_component to make it visible
-    # info_component_update = hello_world()
+    # info_component_update = hello_world()z
 
     # Return updates for all components including info_component
     return side_by_side_anony_updates
@@ -99,7 +101,7 @@ window.__gradio_mode__ = "app";
 
     with gr.Blocks(
         title="Chatea en Español con distintos LLM's",
-        theme=gr.themes.Default(text_size=text_size),
+        theme=gr.themes.Default(text_size=text_size, primary_hue=gr.themes.colors.pink, secondary_hue=gr.themes.colors.blue),
         css=block_css,
         head=head_js,
     ) as demo:
@@ -150,7 +152,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--concurrency-count",
         type=int,
-        default=10,
+        default=200,
         help="The concurrency count of the gradio queue",
     )
     parser.add_argument(
@@ -275,7 +277,28 @@ if __name__ == "__main__":
     #     root_path=args.gradio_root_path,
     #     show_api=False,
     # )
+    demo.queue(
+        default_concurrency_limit=None,
+        status_update_rate='auto',
+        api_open=False,
+        max_size=None,
+    )
 
+    # App completa
     app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=get_user)
+
+    # Test sin login
+    # SECRET_KEY = os.getenv("SECRET_KEY")
+    # SESSION_LIFETIME_SECONDS = 60*5
+    # app = FastAPI()
+    # app = gr.mount_gradio_app(app, demo, path="/gradio")
+    # app.add_middleware(
+    # SessionMiddleware,
+    # secret_key=SECRET_KEY,
+    # session_cookie="session_id",
+    # max_age=SESSION_LIFETIME_SECONDS,  # Expira después de 10 minutos
+    # same_site="lax",
+    # https_only=True  # Cambia a True si usas HTTPS en producción
+    # )
 
     uvicorn.run(app, host=args.host, port=args.port)

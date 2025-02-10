@@ -38,7 +38,7 @@ from fastchat.utils import (
     moderation_filter,
 )
 # from stats.utils import count_country_votes
-from stats_gcp.utils import count_country_votes
+from stats_gcp.utils import count_country_votes, count_user_votes
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
@@ -445,14 +445,26 @@ def build_side_by_side_ui_anony(models):
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
     with gr.Group(elem_id="share-region-anony"):
-        with gr.Accordion("📊 Gráfico de participación"):
+        with gr.Accordion("📊 Gráfico de participación por usuario"):
             gr.BarPlot(
-                value=count_country_votes,
+                value=count_user_votes,
                 x="Usuarios",
                 y="Votos",
-                every=120.0,
+                every=60.0*10,
                 x_label_angle=45,
-                key="grafico-votos",
+                key="grafico-votos-usuario",
+                sort='y',
+                x_axis_labels_visible = False
+            )
+        with gr.Accordion("📊 Gráfico de participación por pais"):
+            gr.BarPlot(
+                value=count_country_votes,
+                x="Pais",
+                y="Votos",
+                every=60.0*10,
+                x_label_angle=45,
+                key="grafico-votos-pais",
+                sort='y'
             )
         with gr.Accordion(
             f"🔍 Expanda para ver las descripciones de {len(models)} modelos",

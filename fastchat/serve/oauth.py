@@ -25,14 +25,14 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'},
 )
 
-def get_user(request: Request):
+async def get_user(request: Request):
     user = request.session.get('user')
     if not user:
         raise HTTPException(status_code=307, detail="Redirect", headers={"Location": "/login-demo"})
     return user
 
 @app.get('/')
-def public(user: dict = Depends(get_user)):
+async def public(user: dict = Depends(get_user)):
     if user:
         return RedirectResponse(url='/gradio')
     else:
@@ -81,40 +81,38 @@ GPTLAS_LOGO = "https://storage.googleapis.com/public-gptlas-assets/logo-gptlas-2
 CENIA_LOGO = "https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png"
 
 def build_login():
-    with gr.Blocks(css="""
-    body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh; /* Ocupa toda la altura de la ventana */
-        margin: 0;
-    }
-    .login-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: auto;
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #1e1e1e; /* Fondo gris oscuro para toda la página */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-    .logo-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 500px;
-    }
-    .logo {
-        margin: 0 auto;
-        display: block;
-        background: none;
-        box-shadow: none;
-        border: none;
-        outline: none;
-    }
+    with gr.Blocks(fill_height= True,
+        theme=gr.themes.Default(text_size = gr.themes.sizes.text_lg, primary_hue=gr.themes.colors.pink, secondary_hue=gr.themes.colors.blue),
+        css="""
+        body {
+            display: flex;
+            justify-content: center;
+        }
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: auto;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 500px;
+        }
+        .logo {
+            margin: 0 auto;
+            display: block;
+            background: none;
+            box-shadow: none;
+            border: none;
+            outline: none;
+        }
     """) as login_demo:
+        
         with gr.Column(elem_classes="login-container"):
             with gr.Row(elem_classes="logo-container"):
                 gr.Image(GPTLAS_LOGO, elem_classes="logo", width=250, height=80, show_label=False,
@@ -125,12 +123,11 @@ def build_login():
             gr.Markdown("## Bienvenido a **GPTLAS Chat Arena** 🏆")
             gr.Markdown("**Autentícate con tu cuenta de Google para acceder a la plataforma.**")
 
-            gr.Button("🔑 Iniciar sesión con Google", link="/login", elem_classes="login-button")
+            gr.Button("🔑 Iniciar sesión con Google", link="/login", variant="primary")
 
             gr.Markdown("_Tu información está protegida y solo se usará para autenticación._")
 
     return login_demo
-
 
 # Iniciar la interfaz del login
 login_demo = build_login()

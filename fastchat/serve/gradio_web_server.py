@@ -74,13 +74,11 @@ Users are required to agree to the following terms before using the service:
 
 The service is a research preview. It only provides limited safety measures and may generate offensive content.
 It must not be used for any illegal, harmful, violent, racist, or sexual purposes.
-Please do not upload any private information.
+Please do not upload any prisvate information.
 The service collects user dialogue data, including both text and images, and reserves the right to distribute it under a Creative Commons Attribution (CC-BY) or a similar license.
 
-#### Please report any bug or issue to our [Slack](https://join.slack.com/share/enQtNzgxMTk4NzU4NzM1MC1jZjFhNjIxYTUxZjgwYTMyMWM2NzUzOGFiZTNkMTU0OTY0ZDg3ODc4MzA0MTkzZWE3ZDc3ZDJjZGY0Mjk1ODZi).
-
 ### Acknowledgment
-We thank to [Sebastián Donoso B](https://github.com/sdonoso)
+We thank to [Sebastián Donoso B](https://github.com/sdonoso) and [Gonzalo Fuentes O](https://github.com/GonzaloFuentes1).
 
 <div class="sponsor-image-about">
     <img decoding="async" src="https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png" alt="cenia">
@@ -146,7 +144,7 @@ class State:
             base.update({"has_csam_image": self.has_csam_image})
         return base
     
-def send_to_remote_server(data):
+async def send_to_remote_server(data):
     """Guarda los datos en un bucket de Google Cloud Storage."""
 
     storage_client = storage.Client()

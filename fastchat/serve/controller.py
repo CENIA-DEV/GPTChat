@@ -18,7 +18,6 @@ from fastapi.responses import StreamingResponse
 import numpy as np
 import requests
 import uvicorn
-
 from fastchat.constants import (
     CONTROLLER_HEART_BEAT_EXPIRATION,
     WORKER_API_TIMEOUT,
@@ -26,7 +25,7 @@ from fastchat.constants import (
     SERVER_ERROR_MSG,
 )
 from fastchat.utils import build_logger
-
+from stats_gcp.votes_update import  update_votes_controller
 
 logger = build_logger("controller", "controller.log")
 
@@ -374,8 +373,30 @@ def create_controller():
     return args, controller
 
 
+# if __name__ == "__main__":
+#     args, controller = create_controller()
+#     if args.ssl:
+#         uvicorn.run(
+#             app,
+#             host=args.host,
+#             port=args.port,
+#             log_level="info",
+#             ssl_keyfile=os.environ["SSL_KEYFILE"],
+#             ssl_certfile=os.environ["SSL_CERTFILE"],
+#         )
+#     else:
+#         uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+
 if __name__ == "__main__":
     args, controller = create_controller()
+
+    # Ejecutar update_votes_controller como una tarea en segundo plano
+    def run_update_votes():
+        asyncio.run(update_votes_controller())
+
+    threading.Thread(target=run_update_votes, daemon=True).start()
+
+    # Iniciar el servidor Uvicorn
     if args.ssl:
         uvicorn.run(
             app,
