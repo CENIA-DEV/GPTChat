@@ -25,7 +25,7 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'},
 )
 
-async def get_user(request: Request):
+def get_user(request: Request):
     user = request.session.get('user')
     if not user:
         raise HTTPException(status_code=307, detail="Redirect", headers={"Location": "/login-demo"})

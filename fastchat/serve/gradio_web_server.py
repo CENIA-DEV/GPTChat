@@ -144,7 +144,7 @@ class State:
             base.update({"has_csam_image": self.has_csam_image})
         return base
     
-async def send_to_remote_server(data):
+def send_to_remote_server(data):
     """Guarda los datos en un bucket de Google Cloud Storage."""
 
     storage_client = storage.Client()
