@@ -1,7 +1,12 @@
 steps:
   # Paso 1: Construcción de la imagen Docker
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest', '.']
+    args:
+      - 'build'
+      - '--cache-from=us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/teak-truck-377020/gptchat-repo/gptchat:latest'
+      - '.'
 
   # Paso 2: Subida de la imagen a Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
