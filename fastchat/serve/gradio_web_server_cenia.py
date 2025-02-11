@@ -285,20 +285,20 @@ if __name__ == "__main__":
     )
 
     # App completa
-    # app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=get_user)
+    app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=get_user)
 
     # Test sin login
-    SECRET_KEY = os.getenv("SECRET_KEY")
-    SESSION_LIFETIME_SECONDS = 60*5
-    app = FastAPI()
-    app = gr.mount_gradio_app(app, demo, path="/gradio")
-    app.add_middleware(
-    SessionMiddleware,
-    secret_key=SECRET_KEY,
-    session_cookie="session_id",
-    max_age=SESSION_LIFETIME_SECONDS,  # Expira después de 10 minutos
-    same_site="lax",
-    https_only=True  # Cambia a True si usas HTTPS en producción
-    )
+    # SECRET_KEY = os.getenv("SECRET_KEY")
+    # SESSION_LIFETIME_SECONDS = 60*5
+    # app = FastAPI()
+    # app = gr.mount_gradio_app(app, demo, path="/gradio")
+    # app.add_middleware(
+    # SessionMiddleware,
+    # secret_key=SECRET_KEY,
+    # session_cookie="session_id",
+    # max_age=SESSION_LIFETIME_SECONDS,  # Expira después de 10 minutos
+    # same_site="lax",
+    # https_only=True  # Cambia a True si usas HTTPS en producción
+    # )
 
     uvicorn.run(app, host=args.host, port=args.port)
