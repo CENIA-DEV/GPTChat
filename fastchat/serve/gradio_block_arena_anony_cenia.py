@@ -39,6 +39,7 @@ from fastchat.utils import (
 )
 # from stats.utils import count_country_votes
 from stats_gcp.utils import count_country_votes, count_user_votes
+from threading import Lock
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
@@ -46,6 +47,8 @@ num_sides = 2
 enable_moderation = False
 anony_names = ["", ""]
 models = []
+session_states = {}
+session_lock = Lock()
 
 
 def set_global_vars_anony(enable_moderation_):
@@ -67,16 +70,23 @@ def load_demo_side_by_side_anony(models_, url_params):
     return states + selector_updates
 
 
+def get_session_id(request: gr.Request):
+    return request.session_id
+
+def get_session_state(session_id):
+    with session_lock:
+        if session_id not in session_states:
+            session_states[session_id] = [None] * num_sides
+        return session_states[session_id]
+
+def set_session_state(session_id, states):
+    with session_lock:
+        session_states[session_id] = states
+
 def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
+    session_id = get_session_id(request)
+    states = get_session_state(session_id)
     with open(get_conv_log_filename(), "a") as fout:
-        # data = {
-        #     "tstamp": round(time.time(), 4),
-        #     "type": vote_type,
-        #     "models": [x for x in model_selectors],
-        #     "states": [x.dict() for x in states],
-        #     "ip": get_ip(request),
-        #     "username": request.username,
-        # }
         user = request.session.get("user")
         data = {
             "tstamp": round(time.time(), 4),
@@ -100,7 +110,6 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
                 "### Model A: " + states[0].model_name,
                 "### Model B: " + states[1].model_name,
             )
-            # yield names + ("",) + (disable_btn,) * 4
             yield names + (disable_text,) + (disable_btn,) * 5
             time.sleep(0.1)
     else:
@@ -108,16 +117,17 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
             "### Model A: " + states[0].model_name,
             "### Model B: " + states[1].model_name,
         )
-        # yield names + ("",) + (disable_btn,) * 4
         yield names + (disable_text,) + (disable_btn,) * 5
 
 
 def leftvote_last_response(
     state0, state1, model_selector0, model_selector1, request: gr.Request
 ):
+    session_id = get_session_id(request)
+    states = get_session_state(session_id)
     logger.info(f"leftvote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "leftvote", [model_selector0, model_selector1], request
+        states, "leftvote", [model_selector0, model_selector1], request
     ):
         yield x
 
@@ -125,9 +135,11 @@ def leftvote_last_response(
 def rightvote_last_response(
     state0, state1, model_selector0, model_selector1, request: gr.Request
 ):
+    session_id = get_session_id(request)
+    states = get_session_state(session_id)
     logger.info(f"rightvote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "rightvote", [model_selector0, model_selector1], request
+        states, "rightvote", [model_selector0, model_selector1], request
     ):
         yield x
 
@@ -135,9 +147,11 @@ def rightvote_last_response(
 def tievote_last_response(
     state0, state1, model_selector0, model_selector1, request: gr.Request
 ):
+    session_id = get_session_id(request)
+    states = get_session_state(session_id)
     logger.info(f"tievote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "tievote", [model_selector0, model_selector1], request
+        states, "tievote", [model_selector0, model_selector1], request
     ):
         yield x
 
@@ -145,9 +159,11 @@ def tievote_last_response(
 def bothbad_vote_last_response(
     state0, state1, model_selector0, model_selector1, request: gr.Request
 ):
+    session_id = get_session_id(request)
+    states = get_session_state(session_id)
     logger.info(f"bothbad_vote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "bothbad_vote", [model_selector0, model_selector1], request
+        states, "bothbad_vote", [model_selector0, model_selector1], request
     ):
         yield x
 
@@ -259,9 +275,10 @@ def get_battle_pair(
 def add_text(
     state0, state1, model_selector0, model_selector1, text, request: gr.Request
 ):
+    session_id = get_session_id(request)
+    states = get_session_state(session_id)
     ip = get_ip(request)
     logger.info(f"add_text (anony). ip: {ip}. len: {len(text)}")
-    states = [state0, state1]
     model_selectors = [model_selector0, model_selector1]
     # Init states if necessary
     if states[0] is None:
@@ -280,6 +297,7 @@ def add_text(
             State(model_left),
             State(model_right),
         ]
+        set_session_state(session_id, states)
 
     if len(text) <= 0:
         for i in range(num_sides):
@@ -302,7 +320,7 @@ def add_text(
     all_conv_text = (
         all_conv_text_left[-1000:] + all_conv_text_right[-1000:] + "\nuser: " + text
     )
-    flagged = moderation_filter(all_conv_text, model_list, do_moderation=True) ###############################################################################
+    flagged = moderation_filter(all_conv_text, model_list, do_moderation=True)
     if flagged:
         logger.info(f"violate moderation (anony). ip: {ip}. text: {text}")
         # overwrite the original text
