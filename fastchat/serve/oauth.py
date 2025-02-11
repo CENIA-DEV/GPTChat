@@ -81,7 +81,7 @@ GPTLAS_LOGO = "https://storage.googleapis.com/public-gptlas-assets/logo-gptlas-2
 CENIA_LOGO = "https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png"
 
 def build_login():
-    with gr.Blocks(fill_height= True,
+    with gr.Blocks(title="Chatea en Español con distintos LLM's", fill_height= True,
         theme=gr.themes.Default(text_size = gr.themes.sizes.text_lg, primary_hue=gr.themes.colors.pink, secondary_hue=gr.themes.colors.blue),
         css="""
         body {

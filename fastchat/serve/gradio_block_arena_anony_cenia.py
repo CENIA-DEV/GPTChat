@@ -431,7 +431,7 @@ def build_side_by_side_ui_anony(models):
 
 
 ## 📜 Reglas
-- Haz cualquier pregunta a dos modelos anónimos (por ejemplo, ChatGPT, Géminis, Claude, Llama) y ¡vota por el mejor!
+- Haz cualquier pregunta a dos modelos anónimos (por ejemplo, ChatGPT, Gemini, Claude, Llama) y ¡vota por el mejor!
 - Puedes chatear durante varios turnos hasta identificar un ganador.
 - Los votos no se contabilizarán si se revela la identidad de los modelos durante la conversación.
 
