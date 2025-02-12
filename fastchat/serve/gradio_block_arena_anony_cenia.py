@@ -66,20 +66,22 @@ def load_demo_side_by_side_anony(models_, url_params):
 
     return states + selector_updates
 
-
-def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
-    session_states = request.session.get('states', [state.dict() for state in states])
+def vote_last_response(states, vote_type, model_selectors, request: gr.Request, i = 0):
+    if states[0] is None or states[1] is None and i < 5:
+        time.sleep(0.1)
+        return vote_last_response(states, vote_type, model_selectors, request, i + 1)
     with open(get_conv_log_filename(), "a") as fout:
         user = request.session.get("user")
         data = {
             "tstamp": round(time.time(), 4),
             "type": vote_type,
-            "models": [state["template_name"] for state in session_states],
-            "states": session_states,
+            "models": [x.dict()["template_name"] for x in states],
+            "states": [x.dict() for x in states],
             "ip": get_ip(request),
             "username": user["email"] if user else None,
         }
         fout.write(json.dumps(data) + "\n")
+
     send_to_remote_server(data)
     get_remote_logger().log(data)
 
@@ -89,15 +91,16 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     if ":" not in model_selectors[0]:
         for i in range(5):
             names = (
-                "### Model A: " + session_states[0]["template_name"][:-6],
-                "### Model B: " + session_states[1]["template_name"][:-6],
+                "### Model A: " + states[0].model_name,
+                "### Model B: " + states[1].model_name,
             )
             # yield names + ("",) + (disable_btn,) * 4
             yield names + (disable_text,) + (disable_btn,) * 5
+            time.sleep(0.1)
     else:
         names = (
-            "### Model A: " + session_states[0].template_name,
-            "### Model B: " + session_states[1].template_name,
+            "### Model A: " + states[0].model_name,
+            "### Model B: " + states[1].model_name,
         )
         # yield names + ("",) + (disable_btn,) * 4
         yield names + (disable_text,) + (disable_btn,) * 5
@@ -275,7 +278,6 @@ def add_text(
     if len(text) <= 0:
         for i in range(num_sides):
             states[i].skip_next = True
-        request.session['states'] = [state.dict() for state in states]
         return (
             states
             + [x.to_gradio_chatbot() for x in states]
@@ -294,7 +296,7 @@ def add_text(
     all_conv_text = (
         all_conv_text_left[-1000:] + all_conv_text_right[-1000:] + "\nuser: " + text
     )
-    flagged = moderation_filter(all_conv_text, model_list, do_moderation=True)
+    flagged = moderation_filter(all_conv_text, model_list, do_moderation=True) ###############################################################################
     if flagged:
         logger.info(f"violate moderation (anony). ip: {ip}. text: {text}")
         # overwrite the original text
@@ -305,7 +307,6 @@ def add_text(
         logger.info(f"conversation turn limit. ip: {get_ip(request)}. text: {text}")
         for i in range(num_sides):
             states[i].skip_next = True
-        request.session['states'] = [state.dict() for state in states]
         return (
             states
             + [x.to_gradio_chatbot() for x in states]
@@ -327,8 +328,6 @@ def add_text(
     for i in range(num_sides):
         if "deluxe" in states[i].model_name:
             hint_msg = SLOW_MODEL_MSG
-
-    request.session['states'] = [state.dict() for state in states]
     return (
         states
         + [x.to_gradio_chatbot() for x in states]
