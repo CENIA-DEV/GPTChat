@@ -38,6 +38,7 @@ steps:
       - '--region=us-central1'
       - '--allow-unauthenticated'
       - '--memory=2Gi'
+      - '--max-instances=1'
       - '--set-env-vars=FASTCHAT_CMD=python3 -m fastchat.serve.gradio_web_server_cenia --register-api-endpoint-file register_gcp --controller-url https://fastchat-controller-908374066028.us-central1.run.app --port 8080'
       - '--set-secrets=GCP_PROJECT_ID=fastchat_GCP_PROJECT_ID:latest'
       - '--set-secrets=GOOGLE_CLOUD_PROJECT=fastchat_GOOGLE_CLOUD_PROJECT:latest'

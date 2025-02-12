@@ -67,15 +67,7 @@ def load_demo_side_by_side_anony(models_, url_params):
     return states + selector_updates
 
 def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
-    max_retries = 10
-    retry_delay = 0.2  # segundos
-    for attempt in range(max_retries):
-        if all(s is not None for s in states):
-            break
-        time.sleep(retry_delay)
-    else:
-        yield ("Error: La información aún no está lista. Por favor, espera y vuelve a intentarlo.",) + (disable_text,) + (disable_btn,) * 5
-        return
+    # Registro de la votación en archivo y en el logger remoto.
     with open(get_conv_log_filename(), "a") as fout:
         user = request.session.get("user")
         data = {
