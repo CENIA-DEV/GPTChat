@@ -66,30 +66,15 @@ def load_demo_side_by_side_anony(models_, url_params):
 
     return states + selector_updates
 
-def vote_last_response(states, vote_type, model_selectors, text, request: gr.Request):
-    # Si alguno de los estados es None, se reestablece y se inserta el texto recibido
+def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     if states[0] is None or states[1] is None:
-        logger.warning("vote_last_response: Se detectó un estado None, intentando recuperarlo...")
-        model_left, model_right = get_battle_pair(
-            models,
-            BATTLE_TARGETS,
-            OUTAGE_MODELS,
-            SAMPLING_WEIGHTS,
-            SAMPLING_BOOST_MODELS,
-        )
-        # Reestablece el primer estado si es None, insertando el texto en el historial
-        if states[0] is None:
-            states[0] = State(model_left)
-            # Opcional: Si deseas que el texto forme parte del historial,
-            # lo agregamos como el mensaje del usuario.
-            states[0].conv.append_message(states[0].conv.roles[0], text)
-            model_selectors[0] = model_left
-        # Reestablece el segundo estado si es None
-        if states[1] is None:
-            states[1] = State(model_right)
-            states[1].conv.append_message(states[1].conv.roles[0], text)
-            model_selectors[1] = model_right
-        logger.info("vote_last_response: Estados recuperados exitosamente.")
+        # Recuperar la conversación desde el archivo de registro
+        with open(get_conv_log_filename(), "r") as fin:
+            lines = fin.readlines()
+            if lines:
+                last_line = lines[-1]
+                data = json.loads(last_line)
+                states = [State.from_dict(state) for state in data["states"]]
 
     # Registro de la votación en archivo y en el logger remoto.
     with open(get_conv_log_filename(), "a") as fout:
@@ -107,54 +92,67 @@ def vote_last_response(states, vote_type, model_selectors, text, request: gr.Req
     send_to_remote_server(data)
     get_remote_logger().log(data)
 
+    # Muestra un mensaje informativo.
     gr.Info(
         "🎉 ¡Gracias por votar! Tu voto influye en la clasificación, por favor vota de manera RESPONSABLE."
     )
 
-    # Ahora se utiliza el texto recibido en lugar de una constante vacía
+    # Se arma la respuesta para la interfaz: se muestran los nombres de los modelos y se deshabilitan botones.
     if ":" not in model_selectors[0]:
         for i in range(5):
             names = (
                 "### Model A: " + states[0].model_name,
                 "### Model B: " + states[1].model_name,
             )
-            yield names + (text,) + (disable_btn,) * 5
+            yield names + (disable_text,) + (disable_btn,) * 5
             time.sleep(0.1)
     else:
         names = (
             "### Model A: " + states[0].model_name,
             "### Model B: " + states[1].model_name,
         )
-        yield names + (text,) + (disable_btn,) * 5
+        yield names + (disable_text,) + (disable_btn,) * 5
 
-# Funciones wrapper de voto (se actualiza la firma para incluir "text")
-def leftvote_last_response(state0, state1, model_selector0, model_selector1, text, request: gr.Request):
+
+def leftvote_last_response(
+    state0, state1, model_selector0, model_selector1, request: gr.Request
+):
     logger.info(f"leftvote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "leftvote", [model_selector0, model_selector1], text, request
+        [state0, state1], "leftvote", [model_selector0, model_selector1], request
     ):
         yield x
 
-def rightvote_last_response(state0, state1, model_selector0, model_selector1, text, request: gr.Request):
+
+def rightvote_last_response(
+    state0, state1, model_selector0, model_selector1, request: gr.Request
+):
     logger.info(f"rightvote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "rightvote", [model_selector0, model_selector1], text, request
+        [state0, state1], "rightvote", [model_selector0, model_selector1], request
     ):
         yield x
 
-def tievote_last_response(state0, state1, model_selector0, model_selector1, text, request: gr.Request):
+
+def tievote_last_response(
+    state0, state1, model_selector0, model_selector1, request: gr.Request
+):
     logger.info(f"tievote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "tievote", [model_selector0, model_selector1], text, request
+        [state0, state1], "tievote", [model_selector0, model_selector1], request
     ):
         yield x
 
-def bothbad_vote_last_response(state0, state1, model_selector0, model_selector1, text, request: gr.Request):
+
+def bothbad_vote_last_response(
+    state0, state1, model_selector0, model_selector1, request: gr.Request
+):
     logger.info(f"bothbad_vote (anony). ip: {get_ip(request)}")
     for x in vote_last_response(
-        [state0, state1], "bothbad_vote", [model_selector0, model_selector1], text, request
+        [state0, state1], "bothbad_vote", [model_selector0, model_selector1], request
     ):
         yield x
+
 
 def regenerate(state0, state1, request: gr.Request):
     logger.info(f"regenerate (anony). ip: {get_ip(request)}")
