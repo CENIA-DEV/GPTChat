@@ -66,10 +66,29 @@ def load_demo_side_by_side_anony(models_, url_params):
 
     return states + selector_updates
 
-def vote_last_response(states, vote_type, model_selectors, request: gr.Request, i = 0):
-    if states[0] is None or states[1] is None and i < 5:
-        print(f"Se perdio el state, reintentando {i}")
-        return vote_last_response(states, vote_type, model_selectors, request, i + 1)
+def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
+    # Si alguno de los estados es None, reintenta recuperarlo.
+    if states[0] is None or states[1] is None:
+        logger.warning("vote_last_response: Se detectó un estado None, intentando recuperarlo...")
+        # Re-inicializamos los estados utilizando la misma lógica que en add_text.
+        model_left, model_right = get_battle_pair(
+            models,
+            BATTLE_TARGETS,
+            OUTAGE_MODELS,
+            SAMPLING_WEIGHTS,
+            SAMPLING_BOOST_MODELS,
+        )
+        # Si el primer estado es None, se lo re-crea y se actualiza su selector.
+        if states[0] is None:
+            states[0] = State(model_left)
+            model_selectors[0] = model_left
+        # Si el segundo estado es None, se lo re-crea y se actualiza su selector.
+        if states[1] is None:
+            states[1] = State(model_right)
+            model_selectors[1] = model_right
+        logger.info("vote_last_response: Estados recuperados exitosamente.")
+
+    # Registro de la votación en archivo y en el logger remoto.
     with open(get_conv_log_filename(), "a") as fout:
         user = request.session.get("user")
         data = {
@@ -85,16 +104,18 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request, 
     send_to_remote_server(data)
     get_remote_logger().log(data)
 
+    # Muestra un mensaje informativo.
     gr.Info(
         "🎉 ¡Gracias por votar! Tu voto influye en la clasificación, por favor vota de manera RESPONSABLE."
     )
+
+    # Se arma la respuesta para la interfaz: se muestran los nombres de los modelos y se deshabilitan botones.
     if ":" not in model_selectors[0]:
         for i in range(5):
             names = (
                 "### Model A: " + states[0].model_name,
                 "### Model B: " + states[1].model_name,
             )
-            # yield names + ("",) + (disable_btn,) * 4
             yield names + (disable_text,) + (disable_btn,) * 5
             time.sleep(0.1)
     else:
@@ -102,7 +123,6 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request, 
             "### Model A: " + states[0].model_name,
             "### Model B: " + states[1].model_name,
         )
-        # yield names + ("",) + (disable_btn,) * 4
         yield names + (disable_text,) + (disable_btn,) * 5
 
 
