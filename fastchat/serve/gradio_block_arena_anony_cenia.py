@@ -68,7 +68,7 @@ def load_demo_side_by_side_anony(models_, url_params):
 
 def vote_last_response(states, vote_type, model_selectors, request: gr.Request, i = 0):
     if states[0] is None or states[1] is None and i < 5:
-        time.sleep(0.1)
+        print(f"Se perdio el state, reintentando {i}")
         return vote_last_response(states, vote_type, model_selectors, request, i + 1)
     with open(get_conv_log_filename(), "a") as fout:
         user = request.session.get("user")
@@ -86,7 +86,7 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request, 
     get_remote_logger().log(data)
 
     gr.Info(
-        "🎉 Thanks for voting! Your vote shapes the leaderboard, please vote RESPONSIBLY."
+        "🎉 ¡Gracias por votar! Tu voto influye en la clasificación, por favor vota de manera RESPONSABLE."
     )
     if ":" not in model_selectors[0]:
         for i in range(5):
