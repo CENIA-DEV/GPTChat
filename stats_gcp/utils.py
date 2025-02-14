@@ -32,7 +32,7 @@ def count_user_votes():
     return df
 
 def count_country_votes():
-    data = load_json_from_gcp(BUCKET_NAME, USER_FILE_PATH)
+    data = load_json_from_gcp(BUCKET_NAME, COUNTRY_FILE_PATH)
     users = [entry["country"] for entry in data]
     votes = [entry["count"] for entry in data]
 
