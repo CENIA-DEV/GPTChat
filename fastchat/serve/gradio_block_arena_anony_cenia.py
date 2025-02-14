@@ -8,6 +8,10 @@ import time
 import yaml
 import gradio as gr
 import numpy as np
+import asyncio
+import anyio
+from starlette.responses import RedirectResponse
+from fastchat.serve.oauth import db
 from fastchat.constants import (
     MODERATION_MSG,
     CONVERSATION_LIMIT_MSG,
@@ -65,18 +69,64 @@ def load_demo_side_by_side_anony(models_, url_params):
     )
 
     return states + selector_updates
+def sync_save_to_db(session_id, state0, state1):
+    return anyio.from_thread.run(save_to_db, session_id, state0, state1)
+
+async def save_to_db(session_id, state0, state1):
+    """Guarda los estados en Firestore de manera asíncrona"""
+    if not session_id:
+        logger.error("No session ID found. Cannot save to DB.")
+        return
+    
+    data = {
+        "state0": json.dumps(state0.dict()),  # Asegúrate de que tenga un método serializable
+        "state1": json.dumps(state1.dict()),
+    }
+
+    logger.info(f"Saving states for session: {session_id}")
+    
+    await db.collection("chat-arena-users").document(session_id).set(data, merge=True)
+
+def sync_load_from_db(session_id):
+    return anyio.from_thread.run(load_from_db, session_id)
+
+async def load_from_db(session_id):
+    """Carga los estados desde Firestore de manera asíncrona"""
+    if not session_id:
+        logger.error("No session ID found. Cannot load from DB.")
+        return None
+
+    doc = await db.collection("chat-arena-users").document(session_id).get()
+    if not doc.exists:
+        logger.error(f"Session ID {session_id} not found in DB.")
+        return None
+
+    data = doc.to_dict()
+
+    return data
 
 def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     # Registro de la votación en archivo y en el logger remoto.
+    session_id = request.cookies.get("chat_arena_session_id")  # Obtener el ID de sesión
+    # Traer la data de la sesión
+    data = sync_load_from_db(session_id)
+    states = [json.loads(data["state0"]), json.loads(data["state1"])]
+
+    username = data["email"] if "email" in data.keys() else None
+    country = data["country"] if "country" in data.keys() else None
+    education = data["education"] if "education" in data.keys() else None
+    profession = data["profession"] if "profession" in data.keys() else None
+
     with open(get_conv_log_filename(), "a") as fout:
-        user = request.session.get("user")
         data = {
             "tstamp": round(time.time(), 4),
             "type": vote_type,
-            "models": [x.dict()["template_name"] for x in states],
-            "states": [x.dict() for x in states],
+            "states": [x for x in states],
             "ip": get_ip(request),
-            "username": user["email"] if user else None,
+            "username": username,
+            "country": country,
+            "education": education,
+            "profession": profession,
         }
         fout.write(json.dumps(data) + "\n")
 
@@ -92,15 +142,15 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     if ":" not in model_selectors[0]:
         for i in range(5):
             names = (
-                "### Model A: " + states[0].model_name,
-                "### Model B: " + states[1].model_name,
+                "### Model A: " + states[0]["template_name"],
+                "### Model B: " + states[1]["template_name"],
             )
             yield names + (disable_text,) + (disable_btn,) * 5
             time.sleep(0.1)
     else:
         names = (
-            "### Model A: " + states[0].model_name,
-            "### Model B: " + states[1].model_name,
+            "### Model A: " + states[0]["template_name"],
+            "### Model B: " + states[1]["template_name"],
         )
         yield names + (disable_text,) + (disable_btn,) * 5
 
@@ -251,7 +301,7 @@ def get_battle_pair(
 
 def add_text(
     state0, state1, model_selector0, model_selector1, text, request: gr.Request
-):
+):  
     ip = get_ip(request)
     logger.info(f"add_text (anony). ip: {ip}. len: {len(text)}")
     states = [state0, state1]
@@ -347,6 +397,11 @@ def bot_response_multi(
     max_new_tokens,
     request: gr.Request,
 ):
+    session_id = request.cookies.get("chat_arena_session_id")  # Obtener el ID de sesión
+    data_session = sync_load_from_db(session_id)
+    if not data_session:
+        gr.Info("⚠️ Debes reiniciar sesión para interactuar.")
+        return RedirectResponse(url='/')
     logger.info(f"bot_response_multi (anony). ip: {get_ip(request)}")
 
     if state0 is None or state0.skip_next:
@@ -415,7 +470,8 @@ def bot_response_multi(
         yield states + chatbots + [disable_btn] * 6
         if stop:
             break
-
+    # Enviar a la base de datos
+    sync_save_to_db(session_id, state0, state1)
 
 def build_side_by_side_ui_anony(models):
     notice_markdown = f"""

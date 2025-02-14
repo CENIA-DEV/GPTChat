@@ -637,23 +637,23 @@ def bot_response(
         is_vision=state.is_vision, has_csam_image=state.has_csam_image
     )
 
-    with open(filename, "a") as fout:
-        data = {
-            "tstamp": round(finish_tstamp, 4),
-            "type": "chat",
-            "model": model_name,
-            "gen_params": {
-                "temperature": temperature,
-                "top_p": top_p,
-                "max_new_tokens": max_new_tokens,
-            },
-            "start": round(start_tstamp, 4),
-            "finish": round(finish_tstamp, 4),
-            "state": state.dict(),
-            "ip": get_ip(request),
-            "username": request.username,
-        }
-        fout.write(json.dumps(data) + "\n")    
+    # with open(filename, "a") as fout:
+    #     data = {
+    #         "tstamp": round(finish_tstamp, 4),
+    #         "type": "chat",
+    #         "model": model_name,
+    #         "gen_params": {
+    #             "temperature": temperature,
+    #             "top_p": top_p,
+    #             "max_new_tokens": max_new_tokens,
+    #         },
+    #         "start": round(start_tstamp, 4),
+    #         "finish": round(finish_tstamp, 4),
+    #         "state": state.dict(),
+    #         "ip": get_ip(request),
+    #         "username": request.username,
+    #     }
+    #     fout.write(json.dumps(data) + "\n")    
     get_remote_logger().log(data)
 
 

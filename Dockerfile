@@ -38,7 +38,10 @@ RUN pip3 install --no-cache-dir \
     python-dotenv \
     gunicorn \
     google-cloud-secret-manager \
-    authlib
+    authlib \
+    pycountry \
+    google-cloud-firestore \
+    gradio_modal
 
 # Establecer el directorio de trabajo
 WORKDIR /app

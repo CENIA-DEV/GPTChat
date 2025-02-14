@@ -5,8 +5,11 @@ It supports chatting with a single model or chatting with two models side-by-sid
 import os
 import argparse
 import uvicorn
+import pycountry
+from gradio_modal import Modal
 from fastapi import FastAPI
 import gradio as gr
+from fastapi import Request, HTTPException
 from starlette.middleware.sessions import SessionMiddleware
 from fastchat.serve.gradio_block_arena_anony_cenia import (
     build_side_by_side_ui_anony,
@@ -30,10 +33,10 @@ from fastchat.utils import (
     parse_gradio_auth_creds,
 )
 
-from fastchat.serve.oauth import app as oauth_app, get_user
+from fastchat.serve.oauth import app as oauth_app, sync_get_user, db
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
-
+COUNTRIES = [country.name for country in pycountry.countries]
 
 def load_demo(url_params, request: gr.Request):
     global models, all_models, vl_models, all_vl_models
@@ -98,6 +101,23 @@ window.__gradio_mode__ = "app";
     }, 5000); // Verifica cada 5 segundos
 </script>
 """
+    js_logout_on_close = """
+<script>
+    function getCookie(name) {
+        let matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([.*+?^${}()|[\]\\])/g, '\\$1') + "=([^;]*)"));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    }
+
+    window.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "hidden") {
+            let sessionId = getCookie("chat_arena_session_id");
+            if (sessionId) {
+                navigator.sendBeacon("/logout");
+            }
+        }
+    });
+</script>
+"""
 
     with gr.Blocks(
         title="Chatea en Español con distintos LLM's",
@@ -110,6 +130,31 @@ window.__gradio_mode__ = "app";
         #     with gr.Tab("⚔️ Arena (battle)", id=0) as arena_tab:
         # arena_tab.select(None, None, None, js=load_js)
         side_by_side_anony_list = build_side_by_side_ui_anony(models)
+
+        with Modal(visible=True, allow_user_close=False) as modal:
+            # Rellena los siguientes campos
+            gr.Markdown("## Debes completar los campos obligatorios para acceder a la plataforma.")
+            gr.Markdown("### Los campos obligatorios son: _País_")
+            country = gr.Dropdown(COUNTRIES, label="País", interactive=True)
+            education = gr.Dropdown(["Primaria", "Secundaria", "Universitaria", "Postgrado", "Otro"], label="Nivel de Educación", interactive=True, allow_custom_value=True)
+            profession = gr.Textbox(label="Profesión", interactive=True)
+            submit = gr.Button("Acceder", interactive=False, variant="primary")
+
+            def enable_submit(country):
+                """Habilita el botón solo si se ha seleccionado un país"""
+                return gr.update(interactive=bool(country))
+            
+            country.change(enable_submit, inputs=[country], outputs=[submit])
+
+            async def close_modal(country, education, profession, request: gr.Request):
+                session_id = request.cookies.get("chat_arena_session_id")
+                if not session_id:
+                    raise HTTPException(status_code=401, detail="No session found")
+                await db.collection("chat-arena-users").document(session_id).set({
+                    "country": country, "education": education, "profession": profession}, merge=True)
+                return Modal(visible=False)
+
+            submit.click(close_modal, inputs=[country, education, profession], outputs=modal)
 
         demo_tabs = side_by_side_anony_list
 
@@ -126,6 +171,7 @@ window.__gradio_mode__ = "app";
         )
         # 🔹 Inyectamos el JavaScript en la interfaz
         gr.HTML(js_check_session)
+        gr.HTML(js_logout_on_close)
 
         # 🔹 Agregamos un botón de "Cerrar sesión"
         with gr.Row():
@@ -256,27 +302,6 @@ if __name__ == "__main__":
             args.elo_results_file,
             args.leaderboard_table_file,
         )
-
-    # # Launch the demo
-    # demo = build_demo(
-    #     models,
-    #     all_vl_models,
-    #     args.elo_results_file,
-    #     args.leaderboard_table_file,
-    # )
-    # demo.queue(
-    #     default_concurrency_limit=args.concurrency_count,
-    #     status_update_rate=10,
-    #     api_open=False,
-    # ).launch(
-    #     server_name=args.host,
-    #     server_port=args.port,
-    #     share=args.share,
-    #     max_threads=200,
-    #     auth=auth,
-    #     root_path=args.gradio_root_path,
-    #     show_api=False,
-    # )
     demo.queue(
         default_concurrency_limit=None,
         status_update_rate='auto',
@@ -285,20 +310,7 @@ if __name__ == "__main__":
     )
 
     # App completa
-    app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=get_user)
 
-    # Test sin login
-    # SECRET_KEY = os.getenv("SECRET_KEY")
-    # SESSION_LIFETIME_SECONDS = 60*5
-    # app = FastAPI()
-    # app = gr.mount_gradio_app(app, demo, path="/gradio")
-    # app.add_middleware(
-    # SessionMiddleware,
-    # secret_key=SECRET_KEY,
-    # session_cookie="session_id",
-    # max_age=SESSION_LIFETIME_SECONDS,  # Expira después de 10 minutos
-    # same_site="lax",
-    # https_only=True  # Cambia a True si usas HTTPS en producción
-    # )
+    app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=sync_get_user)
 
     uvicorn.run(app, host=args.host, port=args.port)

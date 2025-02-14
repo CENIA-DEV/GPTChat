@@ -1,19 +1,24 @@
 import os
+from datetime import datetime, timezone, timedelta
 from authlib.integrations.starlette_client import OAuth, OAuthError
+from google.cloud import firestore
 from fastapi import FastAPI, Depends, Request, HTTPException
 from starlette.config import Config
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
+import anyio
+import uuid
 import gradio as gr
 
 app = FastAPI()
+db = firestore.AsyncClient()
 
 # OAuth settings
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 SECRET_KEY = os.getenv("SECRET_KEY")
-SESSION_LIFETIME_SECONDS = 60*5
+SESSION_LIFETIME_SECONDS = 60 * 60 * 12  # 12 horas
 
 # Set up OAuth
 config_data = {'GOOGLE_CLIENT_ID': GOOGLE_CLIENT_ID, 'GOOGLE_CLIENT_SECRET': GOOGLE_CLIENT_SECRET}
@@ -24,24 +29,48 @@ oauth.register(
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'},
 )
+def sync_get_user(request):
+    return anyio.from_thread.run(get_user, request)
 
-def get_user(request: Request):
-    user = request.session.get('user')
-    if not user:
+async def get_user(request: Request):
+    session_id = request.cookies.get('chat_arena_session_id')
+    
+    if not session_id:
         raise HTTPException(status_code=307, detail="Redirect", headers={"Location": "/login-demo"})
-    return user
+
+    # Verificar si la sesión aún está activa en Firestore
+    session_ref = db.collection("chat-arena-users").document(session_id)
+    session_doc = await session_ref.get()
+
+    if not session_doc.exists:
+        response = RedirectResponse(url="/login-demo")
+        response.delete_cookie("chat_arena_session_id")
+        raise HTTPException(status_code=307, detail="Redirect", headers={"Location": "/login-demo"})
+
+    session_data = session_doc.to_dict()
+    
+    # Verificar si la sesión ha expirado
+    expires_at = session_data.get("expires_at")
+    if expires_at and expires_at < datetime.now(timezone.utc):
+        await session_ref.delete()
+        response = RedirectResponse(url="/login-demo")
+        response.delete_cookie("chat_arena_session_id")
+        raise HTTPException(status_code=307, detail="Redirect", headers={"Location": "/login-demo"})
+
+    return session_id
 
 @app.get('/')
-async def public(user: dict = Depends(get_user)):
-    if user:
-        return RedirectResponse(url='/gradio')
-    else:
-        return RedirectResponse(url='/login-demo')
+async def public(user: str = Depends(get_user)):
+    return RedirectResponse(url='/gradio')
 
 @app.route('/logout')
 async def logout(request: Request):
-    request.session.clear()  # Elimina toda la sesión
-    return RedirectResponse(url='/login-demo')
+    session_id = request.cookies.get("chat_arena_session_id")
+    if session_id:
+        await db.collection("chat-arena-users").document(session_id).delete()
+    response = RedirectResponse(url='/login-demo')
+    response.delete_cookie("chat_arena_session_id")
+    return response
 
 @app.route('/login')
 async def login(request: Request):
@@ -55,27 +84,50 @@ async def auth(request: Request):
         access_token = await oauth.google.authorize_access_token(request)
     except OAuthError:
         return RedirectResponse(url='/')
-    
+
     # Extrae información del usuario
     user_info = access_token.get("userinfo")
     email = user_info.get("email")
     name = user_info.get("name")
     picture = user_info.get("picture")
+
+    chat_arena_session_id = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(seconds=SESSION_LIFETIME_SECONDS)
+
+    # Guardamos la sesión en Firestore
+    await db.collection("chat-arena-users").document(chat_arena_session_id).set(
+        {"name": name, "email": email, "picture": picture, "expires_at": expires_at}
+    )
+
+    # Crea una respuesta y establece la cookie de sesión
+    response = RedirectResponse(url='/')
+    response.set_cookie(
+        key="chat_arena_session_id", 
+        value=chat_arena_session_id, 
+        max_age=SESSION_LIFETIME_SECONDS, 
+        httponly=True, 
+        secure=True
+    )
     
-    # Imprime la información relevante
-    print(f"Usuario autenticado:")
-    print(f"- Nombre: {name}")
-    print(f"- Email: {email}")
-    print(f"- Foto de perfil: {picture}")
-    
-    # Guarda el usuario en la sesión
-    request.session['user'] = {"name": name, "email": email, "picture": picture}
-    return RedirectResponse(url='/')
+    return response
 
 @app.get("/check-session")
 async def check_session(request: Request):
-    user = request.session.get("user")
-    return {"authenticated": bool(user)}
+    session_id = request.cookies.get("chat_arena_session_id")
+
+    if not session_id:
+        return {"authenticated": False}
+
+    session_ref = db.collection("chat-arena-users").document(session_id)
+    session_doc = session_ref.get()
+
+    if not session_doc.exists or session_doc.to_dict().get("expires_at") < datetime.now(timezone.utc):
+        return {"authenticated": False}
+
+    return {"authenticated": True}
+
+
+
 
 GPTLAS_LOGO = "https://storage.googleapis.com/public-gptlas-assets/logo-gptlas-2.png"
 CENIA_LOGO = "https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png"
@@ -135,7 +187,7 @@ login_demo = build_login()
 app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET_KEY,
-    session_cookie="session_id",
+    session_cookie="session_data",
     max_age=SESSION_LIFETIME_SECONDS,  # Expira después de 10 minutos
     same_site="lax",
     https_only=True  # Cambia a True si usas HTTPS en producción
