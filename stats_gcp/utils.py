@@ -5,7 +5,7 @@ import pandas as pd
 # Configura el bucket y archivo
 BUCKET_NAME = "chat-arena-data"
 USER_FILE_PATH = "UserData.json"
-COUNTRY_FILE_PATH = "CountryDataTest.json"
+COUNTRY_FILE_PATH = "CountryData.json"
 
 def load_json_from_gcp(bucket_name, file_path):
     client = storage.Client()
@@ -29,16 +29,15 @@ def count_user_votes():
 
     # Resetear el índice para mayor claridad
     df.reset_index(drop=True, inplace=True)
-    
     return df
 
 def count_country_votes():
-    data = load_json_from_gcp(BUCKET_NAME, COUNTRY_FILE_PATH)
-    users = [list(user.keys())[0] for user in data]
-    votes = [list(user.values())[0] for user in data]
-    
+    data = load_json_from_gcp(BUCKET_NAME, USER_FILE_PATH)
+    users = [entry["country"] for entry in data]
+    votes = [entry["count"] for entry in data]
+
     df = pd.DataFrame({"Pais": users, "Votos": votes})
-    df = df.sort_values(by="Votos", ascending=False)
+    df = df.sort_values(by="Votos", ascending=False).head(10)
 
     # Resetear el índice para mayor claridad
     df.reset_index(drop=True, inplace=True)

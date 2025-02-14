@@ -66,8 +66,8 @@ async def write_json_to_gcs(bucket_name, file_key, data):
         print(f"❌ Error al escribir {file_key} en GCS: {e}")
         return False
 
-async def process_files(bucket_name, folder, last_seen_files, user_conversation_counts):
-    """Procesa nuevos archivos JSON en la carpeta del bucket y actualiza los conteos de conversaciones."""
+async def process_files(bucket_name, folder, last_seen_files, user_conversation_counts, user_country_counts):
+    """Procesa nuevos archivos JSON en la carpeta del bucket y actualiza los conteos de conversaciones y países."""
     current_files = set(await list_json_files(bucket_name, folder))
     new_files = current_files - last_seen_files
 
@@ -86,22 +86,33 @@ async def process_files(bucket_name, folder, last_seen_files, user_conversation_
         if isinstance(json_data, list):
             for item in json_data:
                 username = item.get("username")
+                country = item.get("country")
                 if username:
                     user_conversation_counts[username] = user_conversation_counts.get(username, 0) + 1
+                if country:
+                    user_country_counts[country] = user_country_counts.get(country, 0) + 1
         else:
             username = json_data.get("username")
+            country = json_data.get("country")
             if username:
                 user_conversation_counts[username] = user_conversation_counts.get(username, 0) + 1
+            if country:
+                user_country_counts[country] = user_country_counts.get(country, 0) + 1
 
     # Convertir el formato del JSON a una lista de objetos
     json_output = [{"username": user, "count": count} for user, count in user_conversation_counts.items()]
+    country_output = [{"country": country, "count": count} for country, count in user_country_counts.items()]
 
     # Guardar resultados en GCS dentro de la carpeta "data_chat/"
     output_file = "UserData.json"
-    success = await write_json_to_gcs(bucket_name, output_file, json_output)
+    country_file = "CountryData.json"
+    success_user = await write_json_to_gcs(bucket_name, output_file, json_output)
+    success_country = await write_json_to_gcs(bucket_name, country_file, country_output)
 
-    if not success:
-        print("❌ No se pudo guardar el archivo en GCS. Revisa permisos y conexión.")
+    if not success_user:
+        print("❌ No se pudo guardar el archivo de usuarios en GCS. Revisa permisos y conexión.")
+    if not success_country:
+        print("❌ No se pudo guardar el archivo de países en GCS. Revisa permisos y conexión.")
 
     return current_files
 
@@ -112,10 +123,29 @@ async def monitor_bucket(bucket_name, folder, interval=300):
     # Inicializar last_seen_files como vacío y user_conversation_counts desde cero
     last_seen_files = set()
     user_conversation_counts = {}
+    user_country_counts = {}
+
+    # Verificar si los archivos de resultados ya existen en GCS
+    bucket = await get_gcs_bucket(bucket_name)
+    if not bucket:
+        print("⚠️ No se pudo obtener el bucket, no se realizará el procesamiento.")
+        return
+
+    output_file = "UserData.json"
+    country_file = "CountryData.json"
+    user_blob = bucket.blob(f"{folder}{output_file}")
+    country_blob = bucket.blob(f"{folder}{country_file}")
+
+    if user_blob.exists() and country_blob.exists():
+        print("📂 Archivos de resultados ya existen en GCS. Omitiendo procesamiento inicial.")
+        last_seen_files = set(await list_json_files(bucket_name, folder))
+    else:
+        print("📂 Archivos de resultados no existen en GCS. Procesando todos los archivos...")
+        last_seen_files = await process_files(bucket_name, folder, last_seen_files, user_conversation_counts, user_country_counts)
 
     while True:
         print(f"[{datetime.now()}] 🔍 Buscando nuevos archivos...")
-        last_seen_files = await process_files(bucket_name, folder, last_seen_files, user_conversation_counts)
+        last_seen_files = await process_files(bucket_name, folder, last_seen_files, user_conversation_counts, user_country_counts)
         await asyncio.sleep(interval)
 
 # Controlador asíncrono para integrar con el sistema
