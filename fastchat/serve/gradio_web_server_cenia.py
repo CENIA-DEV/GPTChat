@@ -287,7 +287,7 @@ if __name__ == "__main__":
     if args.gradio_auth_path is not None:
         auth = parse_gradio_auth_creds(args.gradio_auth_path)
     
-    if len(models) <= 0:
+    if len(models) >= 0:
         # Construye la página de mantenimiento
         with gr.Blocks(title="Página en Mantención") as demo:
             gr.Markdown("""
@@ -311,6 +311,17 @@ if __name__ == "__main__":
 
     # App completa
 
-    app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=sync_get_user)
+    # app = gr.mount_gradio_app(oauth_app, demo, path="/gradio", auth_dependency=sync_get_user)
+    
+    # App de mantenimiento
+    app = FastAPI()
+
+    with gr.Blocks(title="Página en Mantención") as gr_app:
+        gr.Markdown("""
+        # 🚧 Página en Mantención
+        Estamos realizando algunas mejoras. Por favor, vuelve más tarde.
+        """)
+
+    app = gr.mount_gradio_app(app, gr_app, path="/")
 
     uvicorn.run(app, host=args.host, port=args.port)
