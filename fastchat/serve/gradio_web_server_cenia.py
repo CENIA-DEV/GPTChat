@@ -137,9 +137,9 @@ window.__gradio_mode__ = "app";
             gr.Markdown("## Debes completar los campos obligatorios para acceder a la plataforma.")
             gr.Markdown("### Los campos obligatorios son: _País_")
             country = gr.Dropdown(COUNTRIES, label="País", interactive=True)
-            education = gr.Dropdown(["Estudiante de pregrado", "Estudiante de postgrado", "Asistente de Investigación", "Investigador/a adjunto", "Investigador/a principal", "Otro"], label="Rol Académico", interactive=True)
+            education = gr.Dropdown(["", "Estudiante de pregrado", "Estudiante de postgrado", "Asistente de Investigación", "Investigador/a adjunto", "Investigador/a principal", "Otro"], label="Rol Académico", interactive=True)
             profession = gr.Textbox(label="Profesión", interactive=True, visible=False)
-            submit = gr.Button("Acceder", interactive=False, variant="primary")
+            submit = gr.Button("Acceder", interactive=True, variant="primary")
 
             def enable_submit(country):
                 """Habilita el botón solo si se ha seleccionado un país"""
