@@ -26,6 +26,7 @@ steps:
       - '--port=8080'
       - '--memory=512Mi'
       - '--min-instances=1'
+      - '--max-instances=1'
 
   # Paso 4: Despliegue del Web UI en Cloud Run cargando env-chat-arena desde Secret Manager
   - name: 'gcr.io/cloud-builders/gcloud'
