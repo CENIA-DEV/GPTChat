@@ -37,6 +37,7 @@ from fastchat.serve.oauth import app as oauth_app, sync_get_user, db
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 COUNTRIES = [country.name for country in pycountry.countries]
+COUNTRIES = ["Chile", "México"]
 
 def load_demo(url_params, request: gr.Request):
     global models, all_models, vl_models, all_vl_models
@@ -136,8 +137,8 @@ window.__gradio_mode__ = "app";
             gr.Markdown("## Debes completar los campos obligatorios para acceder a la plataforma.")
             gr.Markdown("### Los campos obligatorios son: _País_")
             country = gr.Dropdown(COUNTRIES, label="País", interactive=True)
-            education = gr.Dropdown(["Primaria", "Secundaria", "Universitaria", "Postgrado", "Otro"], label="Nivel de Educación", interactive=True, allow_custom_value=True)
-            profession = gr.Textbox(label="Profesión", interactive=True)
+            education = gr.Dropdown(["Estudiante de pregrado", "Estudiante de postgrado", "Asistente de Investigación", "Investigador/a adjunto", "Investigador/a principal", "Otro"], label="Rol Académico", interactive=True)
+            profession = gr.Textbox(label="Profesión", interactive=True, visible=False)
             submit = gr.Button("Acceder", interactive=False, variant="primary")
 
             def enable_submit(country):
