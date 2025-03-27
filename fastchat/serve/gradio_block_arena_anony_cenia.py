@@ -19,6 +19,7 @@ from fastchat.constants import (
     BLIND_MODE_INPUT_CHAR_LEN_LIMIT,
     CONVERSATION_TURN_LIMIT,
     CONFIG_MODELS_FILE,
+    SYSTEM_MSG
 )
 from fastchat.serve.gradio_block_arena_named import flash_buttons
 from fastchat.serve.gradio_web_server import (
@@ -403,6 +404,8 @@ def bot_response_multi(
         gr.Info("⚠️ Debes reiniciar sesión para interactuar.")
         return RedirectResponse(url='/')
     logger.info(f"bot_response_multi (anony). ip: {get_ip(request)}")
+    state0.conv.set_system_message(data_session.get("system_msg", SYSTEM_MSG))
+    state1.conv.set_system_message(data_session.get("system_msg", SYSTEM_MSG))
 
     if state0 is None or state0.skip_next:
         # This generate call is skipped due to invalid inputs
@@ -471,7 +474,15 @@ def bot_response_multi(
         if stop:
             break
     # Enviar a la base de datos
+    # print(state0)
     sync_save_to_db(session_id, state0, state1)
+
+async def update_system_msg(system_msg, request: gr.Request):
+    session_id = request.cookies.get("chat_arena_session_id")
+    await db.collection("chat-arena-users").document(session_id).set({
+        "system_msg": system_msg}, merge=True)
+    return system_msg
+            
 
 def build_side_by_side_ui_anony(models):
     notice_markdown = f"""
@@ -494,17 +505,6 @@ def build_side_by_side_ui_anony(models):
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
     with gr.Group(elem_id="share-region-anony"):
-        with gr.Accordion("📊 Gráfico de participación por usuario"):
-            gr.BarPlot(
-                value=count_user_votes,
-                x="Usuarios",
-                y="Votos",
-                every=60.0*10,
-                x_label_angle=45,
-                key="grafico-votos-usuario",
-                sort='y',
-                x_axis_labels_visible = False
-            )
         with gr.Accordion("📊 Gráfico de participación por pais"):
             gr.BarPlot(
                 value=count_country_votes,
@@ -515,6 +515,19 @@ def build_side_by_side_ui_anony(models):
                 key="grafico-votos-pais",
                 sort='y'
             )
+        with gr.Accordion("Cambio de prompt"):
+            new_prompt_input = gr.Textbox(
+                label="Prompt", placeholder=SYSTEM_MSG
+            )
+            change_prompt_btn = gr.Button("Actualizar Prompt", elem_id="change_prompt_btn", variant="primary")
+            actual_promt = gr.Textbox(label="Prompt Actual", value=SYSTEM_MSG, interactive=False)
+
+            change_prompt_btn.click(
+                update_system_msg,  
+                inputs=[new_prompt_input],  
+                outputs=[actual_promt]  
+            )
+
         with gr.Accordion(
             f"🔍 Expanda para ver las descripciones de {len(models)} modelos",
             open=False,

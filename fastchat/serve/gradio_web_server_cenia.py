@@ -63,7 +63,7 @@ def load_demo(url_params, request: gr.Request):
     side_by_side_anony_updates = load_demo_side_by_side_anony(all_models, url_params)
 
     # # Update the info_component to make it visible
-    # info_component_update = hello_world()z
+    # info_component_update = hello_world()
 
     # Return updates for all components including info_component
     return side_by_side_anony_updates
@@ -326,3 +326,4 @@ if __name__ == "__main__":
     # app = gr.mount_gradio_app(app, gr_app, path="/")
 
     uvicorn.run(app, host=args.host, port=args.port)
+
