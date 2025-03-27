@@ -44,6 +44,7 @@ from fastchat.utils import (
 )
 # from stats.utils import count_country_votes
 from stats_gcp.utils import count_country_votes, count_user_votes
+import gradio as gr
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
@@ -484,7 +485,7 @@ async def update_system_msg(system_msg, request: gr.Request):
     return system_msg
             
 
-def build_side_by_side_ui_anony(models):
+def build_side_by_side_ui_anony(models, demo):
     notice_markdown = f"""
 # ⚔️  CENIA Chatbot Arena.
 
@@ -527,6 +528,9 @@ def build_side_by_side_ui_anony(models):
                 inputs=[new_prompt_input],  
                 outputs=[actual_promt]  
             )
+            demo.load(fn = update_system_msg, 
+                    inputs=[actual_promt], 
+                    outputs=[actual_promt])
 
         with gr.Accordion(
             f"🔍 Expanda para ver las descripciones de {len(models)} modelos",

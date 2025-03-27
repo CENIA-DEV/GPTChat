@@ -130,7 +130,7 @@ window.__gradio_mode__ = "app";
         # with gr.Tabs() as inner_tabs:
         #     with gr.Tab("⚔️ Arena (battle)", id=0) as arena_tab:
         # arena_tab.select(None, None, None, js=load_js)
-        side_by_side_anony_list = build_side_by_side_ui_anony(models)
+        side_by_side_anony_list = build_side_by_side_ui_anony(models, demo)
 
         with Modal(visible=True, allow_user_close=False) as modal:
             # Rellena los siguientes campos
