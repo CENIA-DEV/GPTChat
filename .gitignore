@@ -51,3 +51,5 @@ application_default_credentials.json
 api_endpoint.json
 
 *Zone.Identifier
+
+white-listed-users.txt

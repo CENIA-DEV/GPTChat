@@ -83,6 +83,8 @@ We thank to [Sebastián Donoso B](https://github.com/sdonoso) and [Gonzalo Fuent
 <div class="sponsor-image-about">
     <img decoding="async" src="https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png" alt="cenia">
     <img decoding="async" src="https://storage.googleapis.com/public-gptlas-assets/logo-gptlas-2.png" alt="gptlas">
+    <img decoding="async" src="https://ging-upm-arenaenergy.hf.space/gradio_api/file=static/etsit.png" alt="upm">
+    <img decoding="async" src="https://ging-upm-arenaenergy.hf.space/gradio_api/file=static/cotec.png" alt="cotec">
 </div>
 """
 

@@ -29,6 +29,10 @@ oauth.register(
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'},
 )
+
+with open("white-listed-users.txt", "r") as f:
+    white_listed_users = f.read().splitlines()
+
 def sync_get_user(request):
     return anyio.from_thread.run(get_user, request)
 
@@ -47,16 +51,6 @@ async def get_user(request: Request):
         response.delete_cookie("chat_arena_session_id")
         raise HTTPException(status_code=307, detail="Redirect", headers={"Location": "/login-demo"})
 
-    session_data = session_doc.to_dict()
-    
-    # Verificar si la sesión ha expirado
-    expires_at = session_data.get("expires_at")
-    if expires_at and expires_at < datetime.now(timezone.utc):
-        await session_ref.delete()
-        response = RedirectResponse(url="/login-demo")
-        response.delete_cookie("chat_arena_session_id")
-        raise HTTPException(status_code=307, detail="Redirect", headers={"Location": "/login-demo"})
-
     return session_id
 
 @app.get('/')
@@ -66,8 +60,6 @@ async def public(user: str = Depends(get_user)):
 @app.route('/logout')
 async def logout(request: Request):
     session_id = request.cookies.get("chat_arena_session_id")
-    if session_id:
-        await db.collection("chat-arena-users").document(session_id).delete()
     response = RedirectResponse(url='/login-demo')
     response.delete_cookie("chat_arena_session_id")
     return response
@@ -88,16 +80,21 @@ async def auth(request: Request):
     # Extrae información del usuario
     user_info = access_token.get("userinfo")
     email = user_info.get("email")
+
+    if email not in white_listed_users:
+        return RedirectResponse(url='/login-demo')
+    
     name = user_info.get("name")
     picture = user_info.get("picture")
+    data_session = await db.collection("chat-arena-users").where("email", "==", email).get()
 
-    chat_arena_session_id = str(uuid.uuid4())
-    expires_at = datetime.now(timezone.utc) + timedelta(seconds=SESSION_LIFETIME_SECONDS)
-
-    # Guardamos la sesión en Firestore
-    await db.collection("chat-arena-users").document(chat_arena_session_id).set(
-        {"name": name, "email": email, "picture": picture, "expires_at": expires_at}
-    )
+    if not data_session:
+        chat_arena_session_id = str(uuid.uuid4())
+        await db.collection("chat-arena-users").document(chat_arena_session_id).set(
+            {"name": name, "email": email, "picture": picture}
+        )
+    else:
+        chat_arena_session_id = data_session[0].id
 
     # Crea una respuesta y establece la cookie de sesión
     response = RedirectResponse(url='/')
@@ -121,7 +118,7 @@ async def check_session(request: Request):
     session_ref = db.collection("chat-arena-users").document(session_id)
     session_doc = session_ref.get()
 
-    if not session_doc.exists or session_doc.to_dict().get("expires_at") < datetime.now(timezone.utc):
+    if not session_doc.exists:
         return {"authenticated": False}
 
     return {"authenticated": True}
@@ -131,6 +128,8 @@ async def check_session(request: Request):
 
 GPTLAS_LOGO = "https://storage.googleapis.com/public-gptlas-assets/logo-gptlas-2.png"
 CENIA_LOGO = "https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png"
+UPM_LOGO = "https://ging-upm-arenaenergy.hf.space/gradio_api/file=static/etsit.png"
+COTEC_LOGO = "https://ging-upm-arenaenergy.hf.space/gradio_api/file=static/cotec.png"
 
 def build_login():
     with gr.Blocks(title="Chatea en Español con distintos LLM's", fill_height= True,
@@ -153,7 +152,7 @@ def build_login():
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 500px;
+            width: 900px;
         }
         .logo {
             margin: 0 auto;
@@ -162,17 +161,27 @@ def build_login():
             box-shadow: none;
             border: none;
             outline: none;
+            background-color: #b0b0b5; /* Fondo gris oscuro */
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* Quitar la comita de las esquinas */
+        .svelte-1ipelgc { 
+            display: none !important;
         }
     """) as login_demo:
         
         with gr.Column(elem_classes="login-container"):
             with gr.Row(elem_classes="logo-container"):
-                gr.Image(GPTLAS_LOGO, elem_classes="logo", width=250, height=80, show_label=False,
+                gr.Image(UPM_LOGO, elem_classes="logo", width=300, height=120, show_label=False, 
+                        show_download_button=False, show_fullscreen_button=False, container=False,)
+                gr.Image(CENIA_LOGO, elem_classes="logo", width=300, height=120, show_label=False, 
                         show_download_button=False, show_fullscreen_button=False, container=False)
-                gr.Image(CENIA_LOGO, elem_classes="logo", width=250, height=80, show_label=False, 
+                gr.Image(COTEC_LOGO, elem_classes="logo", width=300, height=120, show_label=False, 
                         show_download_button=False, show_fullscreen_button=False, container=False)
 
-            gr.Markdown("## Bienvenido a **GPTLAS Chat Arena** 🏆")
+            gr.Markdown("## Bienvenido a **LATAM-GPT Chat Arena** 🏆")
             gr.Markdown("**Autentícate con tu cuenta de Google para acceder a la plataforma.**")
 
             gr.Button("🔑 Iniciar sesión con Google", link="/login", variant="primary")

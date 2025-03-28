@@ -6,10 +6,10 @@ import os
 import argparse
 import uvicorn
 import pycountry
+import asyncio
 from gradio_modal import Modal
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 import gradio as gr
-from fastapi import Request, HTTPException
 from starlette.middleware.sessions import SessionMiddleware
 from fastchat.serve.gradio_block_arena_anony_cenia import (
     build_side_by_side_ui_anony,
@@ -37,7 +37,7 @@ from fastchat.serve.oauth import app as oauth_app, sync_get_user, db
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 COUNTRIES = [country.name for country in pycountry.countries]
-COUNTRIES = ["Chile", "México"]
+# COUNTRIES = ["Chile", "México"]
 
 def load_demo(url_params, request: gr.Request):
     global models, all_models, vl_models, all_vl_models
@@ -67,9 +67,16 @@ def load_demo(url_params, request: gr.Request):
 
     # Return updates for all components including info_component
     return side_by_side_anony_updates
-
+async def request_user_info(request: gr.Request):
+    session_id = request.cookies.get("chat_arena_session_id")
+    data_session = await db.collection("chat-arena-users").document(session_id).get()
+    if data_session.exists and "country" in data_session.to_dict():
+        return gr.update(visible=False)  # No mostrar el modal
+    else:
+        return gr.update(visible=True)  # Mostrar el modal
 
 def build_demo(models, vl_models, elo_results_file, leaderboard_table_file):
+
     if args.show_terms_of_use:
         load_js = get_window_url_params_with_tos_js
     else:
@@ -132,31 +139,46 @@ window.__gradio_mode__ = "app";
         # arena_tab.select(None, None, None, js=load_js)
         side_by_side_anony_list = build_side_by_side_ui_anony(models, demo)
 
-        with Modal(visible=True, allow_user_close=False) as modal:
-            # Rellena los siguientes campos
+        # Construye el modal si es necesario
+
+        with Modal(visible=False, allow_user_close=False) as modal:
+            demo.load(
+                request_user_info,
+                inputs = [],
+                outputs = modal
+                )
             gr.Markdown("## Debes completar los campos obligatorios para acceder a la plataforma.")
             gr.Markdown("### Los campos obligatorios son: _País_")
             country = gr.Dropdown(COUNTRIES, label="País", interactive=True)
-            education = gr.Dropdown(["", "Estudiante de pregrado", "Estudiante de postgrado", "Asistente de Investigación", "Investigador/a adjunto", "Investigador/a principal", "Otro"], label="Rol Académico", interactive=True)
+            education = gr.Dropdown(
+                ["", "Estudiante de pregrado", "Estudiante de postgrado", "Asistente de Investigación", "Investigador/a adjunto", "Investigador/a principal", "Otro"],
+                label="Rol Académico",
+                interactive=True,
+                visible=False
+            )
             profession = gr.Textbox(label="Profesión", interactive=True, visible=False)
-            submit = gr.Button("Acceder", interactive=True, variant="primary")
+            submit = gr.Button("Acceder", interactive=False, variant="primary")
 
             def enable_submit(country):
                 """Habilita el botón solo si se ha seleccionado un país"""
                 return gr.update(interactive=bool(country))
-            
+
             country.change(enable_submit, inputs=[country], outputs=[submit])
 
             async def close_modal(country, education, profession, request: gr.Request):
                 session_id = request.cookies.get("chat_arena_session_id")
                 if not session_id:
                     raise HTTPException(status_code=401, detail="No session found")
-                await db.collection("chat-arena-users").document(session_id).set({
-                    "country": country, "education": education, "profession": profession}, merge=True)
-                return Modal(visible=False)
+                await db.collection("chat-arena-users").document(session_id).set(
+                    {"country": country, "education": education, "profession": profession}, merge=True
+                )
+                return gr.update(visible=False)
 
             submit.click(close_modal, inputs=[country, education, profession], outputs=modal)
-
+            
+            def open_modal(request: gr.Request):
+                return gr.update(visible=True) 
+            
         demo_tabs = side_by_side_anony_list
 
         url_params = gr.JSON(visible=False)
@@ -175,6 +197,13 @@ window.__gradio_mode__ = "app";
         gr.HTML(js_logout_on_close)
 
         # 🔹 Agregamos un botón de "Cerrar sesión"
+        with gr.Accordion("🌎 Cambio de información personal", open=False):
+            change_personal_information = gr.Button("Actualizar Información", elem_id="change_personal_information_btn", variant="primary")
+            change_personal_information.click(
+                open_modal,  
+                inputs=[],  
+                outputs=[modal]  
+            )
         with gr.Row():
             gr.Button("Cerrar sesión", link="/logout")
 

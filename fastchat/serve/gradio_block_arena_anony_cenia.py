@@ -37,6 +37,7 @@ from fastchat.serve.gradio_web_server import (
     get_model_description_md,
     send_to_remote_server,
 )
+
 from fastchat.serve.remote_logger import get_remote_logger
 from fastchat.utils import (
     build_logger,
@@ -516,7 +517,7 @@ def build_side_by_side_ui_anony(models, demo):
                 key="grafico-votos-pais",
                 sort='y'
             )
-        with gr.Accordion("Cambio de prompt"):
+        with gr.Accordion("📜​ Cambio de prompt"):
             new_prompt_input = gr.Textbox(
                 label="Prompt", placeholder=SYSTEM_MSG
             )
@@ -531,7 +532,7 @@ def build_side_by_side_ui_anony(models, demo):
             demo.load(fn = update_system_msg, 
                     inputs=[actual_promt], 
                     outputs=[actual_promt])
-
+        # Cambio de datos nacionalidad
         with gr.Accordion(
             f"🔍 Expanda para ver las descripciones de {len(models)} modelos",
             open=False,
@@ -545,7 +546,7 @@ def build_side_by_side_ui_anony(models, demo):
                     chatbots[i] = gr.Chatbot(
                         label=label,
                         elem_id="chatbot",
-                        height=650,
+                        height=600,
                         show_copy_button=True,
                     )
 
@@ -565,7 +566,7 @@ def build_side_by_side_ui_anony(models, demo):
         rightvote_btn = gr.Button(
             value="👉  B es mejor", visible=False, interactive=False
         )
-        tie_btn = gr.Button(value="🤝  Tie", visible=False, interactive=False)
+        tie_btn = gr.Button(value="🤝  Empate", visible=False, interactive=False)
         bothbad_btn = gr.Button(
             value="👎 ambas son malas", visible=False, interactive=False
         )
