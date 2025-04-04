@@ -1556,7 +1556,7 @@ class MistralAdapter(BaseModelAdapter):
 
     def match(self, model_path: str):
         return "mistral" in model_path.lower() or "mixtral" in model_path.lower()
-
+#
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
         model.config.eos_token_id = tokenizer.eos_token_id
