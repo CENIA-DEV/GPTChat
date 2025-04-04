@@ -65,7 +65,9 @@ ANTHROPIC_MODEL_LIST = (
     "claude-3-opus-20240229",
     "claude-instant-1",
     "claude-instant-1.2",
-    "claude-3-5-sonnet@20240620"
+    "claude-3-5-sonnet@20240620",
+    "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "anthropic.claude-3-5-haiku-20241022-v1:0"
 )
 
 OPENAI_MODEL_LIST = (
@@ -1176,6 +1178,10 @@ class ClaudeAdapter(BaseModelAdapter):
             return get_conv_template("claude-3-5-sonnet-20240620")
         if "claude-3-opus" in model_path:
             return get_conv_template("claude-3-opus-20240229")
+        if "anthropic.claude-3-5-haiku-20241022-v1:0" in model_path:
+            return get_conv_template("claude-3-5-haiku-bedrock-cenia")
+        if "anthropic.claude-3-5-sonnet-20241022-v2:0" in model_path:
+            return get_conv_template("claude-3-5-sonnet-bedrock-cenia")
         return get_conv_template("claude")
 
 
@@ -1558,7 +1564,9 @@ class MistralAdapter(BaseModelAdapter):
         return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
-        return get_conv_template("mistral-cenia")
+        if "mistral.mistral-large-2402-v1:0" in model_path.lower():
+            return get_conv_template("mistral-large-2402-bedrock-cenia")
+        return get_conv_template("mistral-bedrock-cenia")
 
 
 class Llama2Adapter(BaseModelAdapter):
@@ -1581,7 +1589,7 @@ class Llama3Adapter(BaseModelAdapter):
     """The model adapter for Llama-3 (e.g., meta-llama/Meta-Llama-3-8B-Instruct)"""
 
     def match(self, model_path: str):
-        return "llama-3" in model_path.lower()
+        return "llama-3" in model_path.lower() or "llama3"
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
@@ -1590,6 +1598,13 @@ class Llama3Adapter(BaseModelAdapter):
         return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
+        if "meta.llama3-3-70b-instruct-v1:0" in model_path.lower():
+            return get_conv_template("llama-3.3-70b-bedrock-cenia")
+        if "meta.llama3-2-90b-instruct-v1:0" in model_path.lower():
+            return get_conv_template("llama-3.2-90b-bedrock-cenia")
+        if "meta.llama3-2-11b-instruct-v1:0" in model_path.lower():
+            return get_conv_template("llama-3.2-11b-bedrock-cenia")
+        
         return get_conv_template("llama-3-cenia")
 
 
@@ -2185,16 +2200,16 @@ class DeepseekCoderAdapter(BaseModelAdapter):
 
 
 class DeepseekChatAdapter(BaseModelAdapter):
-    """The model adapter for deepseek-ai's chat models"""
-
-    # Note: that this model will require tokenizer version >= 0.13.3 because the tokenizer class is LlamaTokenizerFast
+    """The model adapter for DeepSeek"""
 
     def match(self, model_path: str):
-        return "deepseek-llm" in model_path.lower() and "chat" in model_path.lower()
+        return "deepseek" in model_path.lower()
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
+        if "deepseek.r1-v1:0" in model_path:
+            return get_conv_template("deepseek-r1-bedrock-cenia")
         return get_conv_template("deepseek-chat")
-
+    
 
 class GeminiAdapter(BaseModelAdapter):
     """The model adapter for Gemini"""
@@ -2453,6 +2468,68 @@ class RekaAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("api_based_default")
 
+"""The model adapter for Amazon Nova Pro"""
+
+class AmazonNovaProAdapter(BaseModelAdapter):
+    def match(self, model_path: str):
+        return "amazon-nova-pro" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("amazon-nova-pro-bedrock-cenia")
+
+
+"""The model adapter for Amazon Nova Lite"""
+
+class AmazonNovaLiteAdapter(BaseModelAdapter):
+    def match(self, model_path: str):
+        return "amazon-nova-lite" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("amazon-nova-lite-bedrock-cenia")
+
+
+"""The model adapter for Amazon Nova Micro"""
+
+class AmazonNovaMicroAdapter(BaseModelAdapter):
+    def match(self, model_path: str):
+        return "amazon-nova-micro" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("amazon-nova-micro-bedrock-cenia")
+
+class DeepseekR1Adapter(BaseModelAdapter):
+    def match(self, model_path: str):
+        return "deepseek.r1-v1:0" in model_path
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("deepseek-r1-cenia")
+
+
+class Llama3_70BAdapter(BaseModelAdapter):
+    def match(self, model_path: str):
+        return "meta.llama3-70b-instruct-v1:0" in model_path
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("llama-3.3-cenia")
+
+
+# class MistralLarge2402Adapter(BaseModelAdapter):
+#     def match(self, model_path: str):
+#         return "mistral.mistral-large-2402-v1:0" in model_path
+#     def get_default_conv_template(self, model_path: str) -> Conversation:
+#         return get_conv_template("mistral-bedrock-cenia")
+
+class Llama3_90BAdapter(BaseModelAdapter):
+    def match(self, model_path: str):
+        return "meta.llama3-2-90b-instruct-v1:0" in model_path
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("llama-3.3-90b-bedrock-cenia")
+
+
+class Llama3_11BAdapter(BaseModelAdapter):
+    def match(self, model_path: str):
+        return "meta.llama3-2-11b-instruct-v1:0" in model_path
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("llama-3.3-11b-bedrock-cenia")
+
 
 # Note: the registration order matters.
 # The one registered earlier has a higher matching priority.
@@ -2554,6 +2631,12 @@ register_model_adapter(CllmAdapter)
 register_model_adapter(RekaAdapter)
 register_model_adapter(SmaugChatAdapter)
 register_model_adapter(Llama3Adapter)
+register_model_adapter(AmazonNovaLiteAdapter)
+register_model_adapter(AmazonNovaMicroAdapter)
+register_model_adapter(AmazonNovaProAdapter)
+register_model_adapter(Llama3_70BAdapter)
+register_model_adapter(Llama3_90BAdapter)
+register_model_adapter(Llama3_11BAdapter)
 
 # After all adapters, try the default base adapter.
 register_model_adapter(BaseModelAdapter)

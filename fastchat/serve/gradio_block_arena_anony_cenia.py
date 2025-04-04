@@ -59,6 +59,36 @@ def set_global_vars_anony(enable_moderation_):
     global enable_moderation
     enable_moderation = enable_moderation_
 
+def change_vote_backdown(request: gr.Request):
+    return change_vote(True, request)
+
+def change_vote_no_backdown(request: gr.Request):
+    return change_vote(False, request)
+
+def change_vote(backdown: bool, request: gr.Request):
+    session_id = request.cookies.get("chat_arena_session_id")  # Obtener el ID de sesión
+    # Traer la data de la sesión
+    data = sync_load_from_db(session_id)
+    states = [json.loads(data["state0"]), json.loads(data["state1"])]
+
+    username = data["email"] if "email" in data.keys() else None
+    country = data["country"] if "country" in data.keys() else None
+    education = data["education"] if "education" in data.keys() else None
+    profession = data["profession"] if "profession" in data.keys() else None
+    data = {
+        "tstamp": round(time.time(), 4),
+        "states": [x for x in states],
+        "ip": get_ip(request),
+        "username": username,
+        "country": country,
+        "education": education,
+        "profession": profession,
+        "backdown": backdown,
+    }
+
+    send_to_remote_server(data, folder_name="hackaton-changes")
+
+    return (gr.update(visible=False))
 
 def load_demo_side_by_side_anony(models_, url_params):
     global models
@@ -136,27 +166,33 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     send_to_remote_server(data)
     get_remote_logger().log(data)
 
-    # Muestra un mensaje informativo.
-    gr.Info(
-        "🎉 ¡Gracias por votar! Tu voto influye en la clasificación, por favor vota de manera RESPONSABLE."
-    )
+    # Determinar el valor de `change_bool`
+    change_bool = states[0]["template_name"] > states[1]["template_name"]
 
-    # Se arma la respuesta para la interfaz: se muestran los nombres de los modelos y se deshabilitan botones.
-    if ":" not in model_selectors[0]:
-        for i in range(5):
-            names = (
-                "### Model A: " + states[0]["template_name"],
-                "### Model B: " + states[1]["template_name"],
-            )
-            yield names + (disable_text,) + (disable_btn,) * 5
-            time.sleep(0.1)
-    else:
+    # Flujo alternativo basado en `change_bool`
+    if change_bool:
+        # Habilitar/deshabilitar botones en un orden diferente
         names = (
             "### Model A: " + states[0]["template_name"],
             "### Model B: " + states[1]["template_name"],
         )
-        yield names + (disable_text,) + (disable_btn,) * 5
-
+        yield names + (disable_text,) + (disable_btn,) * 5 + tuple([gr.update(visible=True)])  # Mostrar el backdown_row # Ejemplo de habilitación
+    else:
+        # Flujo actual
+        if ":" not in model_selectors[0]:
+            for i in range(5):
+                names = (
+                    "### Model A: " + states[0]["template_name"],
+                    "### Model B: " + states[1]["template_name"],
+                )
+                yield names + (disable_text,) + (disable_btn,) * 5 + tuple([gr.update(visible=False)])  # Mostrar el backdown_row
+                time.sleep(0.1)
+        else:
+            names = (
+                "### Model A: " + states[0]["template_name"],
+                "### Model B: " + states[1]["template_name"],
+            )
+            yield names + (disable_text,) + (disable_btn,) * 5 + tuple([gr.update(visible=False)])  # Mostrar el backdown_row
 
 def leftvote_last_response(
     state0, state1, model_selector0, model_selector1, request: gr.Request
@@ -559,6 +595,11 @@ def build_side_by_side_ui_anony(models, demo):
         with gr.Row():
             slow_warning = gr.Markdown("")
 
+    with gr.Column(visible=False) as backdown_row:
+        backdown_txt = gr.HTML("""<h2> ¿Sabiendo que la respuesta que no has elegido consume menos energía cambiarías tu elección o la mantendrías?</h2>""")
+        with gr.Row():
+            no_backdown_btn = gr.Button(value="Mantengo la respuesta", visible=True, interactive=True)
+            backdown_btn = gr.Button(value="Cambiaría de respuesta", visible=True, interactive=True)
     with gr.Row():
         leftvote_btn = gr.Button(
             value="👈  A es mejor", visible=False, interactive=False
@@ -581,8 +622,9 @@ def build_side_by_side_ui_anony(models, demo):
 
     with gr.Row() as button_row:
         clear_btn = gr.Button(value="🎲 Nueva Ronda", interactive=False)
-        regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False)
+        regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False, visible=True)
         share_btn = gr.Button(value="📷  Compartir")
+        
 
     with gr.Accordion("Parameters", open=False, visible=False) as parameter_row:
         temperature = gr.Slider(
@@ -625,25 +667,25 @@ def build_side_by_side_ui_anony(models, demo):
         leftvote_last_response,
         states + model_selectors,
         model_selectors
-        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn],
+        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn, backdown_row],
     )
     rightvote_btn.click(
         rightvote_last_response,
         states + model_selectors,
         model_selectors
-        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn],
+        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn, backdown_row],
     )
     tie_btn.click(
         tievote_last_response,
         states + model_selectors,
         model_selectors
-        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn],
+        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn, backdown_row],
     )
     bothbad_btn.click(
         bothbad_vote_last_response,
         states + model_selectors,
         model_selectors
-        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn],
+        + [textbox, leftvote_btn, rightvote_btn, tie_btn, bothbad_btn, send_btn, backdown_row],
     )
     regenerate_btn.click(
         regenerate, states, states + chatbots + [textbox] + btn_list
@@ -664,6 +706,16 @@ def build_side_by_side_ui_anony(models, demo):
         + btn_list
         + [slow_warning]
         + [send_btn],
+    )
+    backdown_btn.click(
+        change_vote_backdown,
+        inputs=[],
+        outputs=[backdown_row]
+    )
+    no_backdown_btn.click(
+        change_vote_no_backdown,
+        inputs=[],
+        outputs=[backdown_row]
     )
 
     share_js = """

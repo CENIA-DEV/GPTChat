@@ -48,6 +48,7 @@ docker/
 # Carpetas sensibles
 .env
 application_default_credentials.json
+api_endpoint_bedrock.json
 api_endpoint.json
 
 *Zone.Identifier

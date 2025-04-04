@@ -890,3 +890,39 @@ register_model_info(
     "https://huggingface.co/cllm",
     "consistency-llm is a new generation of parallel decoder LLMs with fast generation speed.",
 )
+
+register_model_info(
+    ["anthropic.claude-3-5-sonnet-20241022-v2", "anthropic.claude-3-5-haiku-20241022-v1"],
+    "Claude 3.5",
+    "https://www.anthropic.com/news/claude-3-family",
+    "Claude 3.5 de Anthropic"
+)
+
+register_model_info(
+    ["deepseek.r1-v1"],
+    "DeepSeek R1",
+    "https://huggingface.co/deepseek-ai/deepseek-llm-67b-chat",
+    "DeepSeek R1 adaptado para Bedrock"
+)
+
+register_model_info(
+    ["meta.llama3-70b-instruct-v1", "meta.llama3-2-90b-instruct-v1", "meta.llama3-2-11b-instruct-v1"],
+    "Llama 3",
+    "https://ai.meta.com/llama/",
+    "Llama 3 series adaptado para Bedrock"
+)
+
+register_model_info(
+    ["mistral.mistral-large-2402-v1"],
+    "Mistral Large",
+    "https://mistral.ai/news/mistral-large/",
+    "Mistral Large adaptado para Bedrock"
+)
+
+register_model_info(
+    ["amazon.nova-lite-v1", "amazon.nova-micro-v1", "amazon.nova-pro-v1"],
+    "Amazon Nova",
+    "https://aws.amazon.com/bedrock/amazon-nova/",
+    "Amazon Nova family"
+)
+

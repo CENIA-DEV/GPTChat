@@ -41,7 +41,9 @@ RUN pip3 install --no-cache-dir \
     authlib \
     pycountry \
     google-cloud-firestore \
-    gradio_modal
+    gradio_modal \
+    boto3 \
+    botocore
 
 # Establecer el directorio de trabajo
 WORKDIR /app

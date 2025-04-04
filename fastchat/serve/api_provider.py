@@ -209,10 +209,103 @@ def get_api_provider_stream_iter(
             api_base=model_api_dict["api_base"],
             api_key=model_api_dict["api_key"],
         )
+    elif model_api_dict["api_type"] == "bedrock":
+        prompt = conv.to_openai_api_messages()  # O ajusta si usas otro formato
+        stream_iter = bedrock_api_stream_iter(
+            model_name=model_api_dict["model_name"],
+            messages=prompt,
+            temperature=temperature,
+            top_p=top_p,
+            max_new_tokens=max_new_tokens,
+            region=model_api_dict.get("region", "us-east-1"),
+            access_key=model_api_dict.get("access_key"),
+            secret_key=model_api_dict.get("secret_key"),
+            endpoint_url=model_api_dict.get("endpoint_url"),
+        )
     else:
         raise NotImplementedError()
+        
 
     return stream_iter
+
+def bedrock_api_stream_iter(
+    model_name,
+    messages,
+    temperature,
+    top_p,
+    max_new_tokens,
+    region="us-east-1",
+    access_key=None,
+    secret_key=None,
+    endpoint_url=None,
+):
+    import boto3
+    import json
+    import botocore
+
+    # Setup cliente boto3
+    session = boto3.Session(
+        aws_access_key_id=access_key or os.environ.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=secret_key or os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        region_name=region,
+    )
+    client = session.client("bedrock-runtime", endpoint_url=endpoint_url)
+
+    # --- Mapping explícito ---
+    claude_family = ["claude-3-5-sonnet", "claude-3-5-haiku"]
+    llama_family = ["llama3", "llama-3", "llama-3.3"]
+    deepseek_family = ["deepseek"]
+    mistral_family = ["mistral", "mistral-large"]
+    nova_family = ["nova-pro", "nova-lite", "nova-micro"]
+    jamba_family = ["jamba"]
+
+    # --- Auto-adaptación robusta ---
+    model_name_lower = model_name.lower()
+
+    if any(x in model_name_lower for x in claude_family):
+        # Claude usa messages estilo chat
+        body = {
+            "messages": messages,
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_tokens": max_new_tokens
+        }
+
+    elif any(x in model_name_lower for x in llama_family + deepseek_family + mistral_family + nova_family + jamba_family):
+        # Estos modelos esperan prompt plano
+        flat_prompt = "\n".join([m["content"] for m in messages if m["role"] in ["user", "assistant"]])
+        body = {
+            "prompt": flat_prompt,
+            "max_tokens": max_new_tokens,
+            "temperature": temperature,
+            "top_p": top_p
+        }
+
+    else:
+        raise NotImplementedError(f"Modelo de Bedrock no soportado automáticamente: {model_name}")
+
+    logger.info(f"==== request ====\n{body}")
+
+    # --- Streaming ---
+    try:
+        response = client.invoke_model_with_response_stream(
+            modelId=model_name,
+            body=json.dumps(body),
+            contentType="application/json",
+            accept="application/json"
+        )
+
+        text = ""
+        for event in response.get("body"):
+            if "chunk" in event:
+                chunk = json.loads(event["chunk"]["bytes"])
+                output = chunk.get("outputText") or chunk.get("completion")
+                if output:
+                    text += output
+                    yield {"text": text, "error_code": 0}
+    except botocore.exceptions.BotoCoreError as e:
+        logger.error(f"Error en la API de Bedrock: {e}")
+        yield {"text": f"**API REQUEST ERROR** {e}", "error_code": 1}
 
 
 def openai_api_stream_iter(

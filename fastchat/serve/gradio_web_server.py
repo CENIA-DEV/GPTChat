@@ -146,11 +146,10 @@ class State:
             base.update({"has_csam_image": self.has_csam_image})
         return base
     
-def send_to_remote_server(data):
+def send_to_remote_server(data, folder_name = "data_chat", BUCKET_NAME=os.getenv("BUCKET_NAME")):
     """Guarda los datos en un bucket de Google Cloud Storage."""
 
     storage_client = storage.Client()
-    BUCKET_NAME = os.getenv("BUCKET_NAME")
 
     try:
         if not data:
@@ -162,7 +161,7 @@ def send_to_remote_server(data):
         json_data = json.dumps(data, ensure_ascii=False)
 
         bucket = storage_client.bucket(BUCKET_NAME)
-        blob = bucket.blob("data_chat/" + filename)
+        blob = bucket.blob(folder_name +"/"+ filename)
         blob.upload_from_string(json_data, content_type="application/json")
         
         logger.info(f"File {filename} uploaded successfully, status: 200")

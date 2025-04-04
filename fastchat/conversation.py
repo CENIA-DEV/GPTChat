@@ -1621,6 +1621,135 @@ register_conv_template(
     )
 )
 
+####### Bedrock
+
+# Amazon Nova Pro
+register_conv_template(
+    Conversation(
+        name="amazon-nova-pro-bedrock-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+    )
+)
+
+# Amazon Nova Lite
+register_conv_template(
+    Conversation(
+        name="amazon-nova-lite-bedrock-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+    )
+)
+
+# Amazon Nova Micro
+register_conv_template(
+    Conversation(
+        name="amazon-nova-micro-bedrock-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+    )
+)
+
+# Claude 3.5 Sonnet
+register_conv_template(
+    Conversation(
+        name="claude-3-5-sonnet-bedrock-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+        max_image_size_mb=5 / 1.5,
+    )
+)
+
+# Claude 3.5 Haiku
+register_conv_template(
+    Conversation(
+        name="claude-3-5-haiku-bedrock-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.DEFAULT,
+        sep=None,
+        max_image_size_mb=5 / 1.5,
+    )
+)
+
+# DeepSeek R1
+register_conv_template(
+    Conversation(
+        name="deepseek-r1-bedrock-cenia",
+        system_message=SYSTEM_MSG,
+        roles=("User", "Assistant"),
+        sep_style=SeparatorStyle.DEEPSEEK_CHAT,
+        sep="\n\n",
+        sep2="<｜end▁of▁sentence｜>",
+        stop_str="<｜end▁of▁sentence｜>",
+    )
+)
+
+# Llama 3.3 - 70B
+register_conv_template(
+    Conversation(
+        name="llama-3.3-70b-bedrock-cenia",
+        system_template=f"<|start_header_id|>system<|end_header_id|>\n\n{SYSTEM_MSG}<|eot_id|>",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.LLAMA3,
+        sep="",
+        stop_str="<|eot_id|>",
+        stop_token_ids=[128001, 128009],
+    )
+)
+
+# Mistral Large 2402
+register_conv_template(
+    Conversation(
+        name="mistral-large-2402-bedrock-cenia",
+        system_template=f"[INST] {SYSTEM_MSG}\n",
+        system_message=SYSTEM_MSG,
+        roles=("[INST]", "[/INST]"),
+        sep_style=SeparatorStyle.LLAMA2,
+        sep=" ",
+        sep2="</s>",
+    )
+)
+
+# Llama 3.3 - 90B
+register_conv_template(
+    Conversation(
+        name="llama-3.2-90b-bedrock-cenia",
+        system_template=f"<|start_header_id|>system<|end_header_id|>\n\n{SYSTEM_MSG}<|eot_id|>",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.LLAMA3,
+        sep="",
+        stop_str="<|eot_id|>",
+        stop_token_ids=[128001, 128009],
+    )
+)
+
+# Llama 3.3 - 11B
+register_conv_template(
+    Conversation(
+        name="llama-3.2-11b-bedrock-cenia",
+        system_template=f"<|start_header_id|>system<|end_header_id|>\n\n{SYSTEM_MSG}<|eot_id|>",
+        system_message=SYSTEM_MSG,
+        roles=("user", "assistant"),
+        sep_style=SeparatorStyle.LLAMA3,
+        sep="",
+        stop_str="<|eot_id|>",
+        stop_token_ids=[128001, 128009],
+    )
+)
+####### Bedrock
+
+
 ######################################## APIS CENIA ########################################
 
 register_conv_template(
