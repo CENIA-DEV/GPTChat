@@ -1566,7 +1566,7 @@ class MistralAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         if "mistral.mistral-large-2402-v1:0" in model_path.lower():
             return get_conv_template("mistral-large-2402-bedrock-cenia")
-        return get_conv_template("mistral-bedrock-cenia")
+        return get_conv_template("mistral-cenia")
 
 
 class Llama2Adapter(BaseModelAdapter):
