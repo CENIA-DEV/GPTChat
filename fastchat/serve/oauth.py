@@ -6,7 +6,7 @@ from fastapi import FastAPI, Depends, Request, HTTPException
 from starlette.config import Config
 from starlette.responses import RedirectResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
-import uvicorn
+from stats_gcp.utils import load_txt_from_gcp
 import anyio
 import uuid
 import gradio as gr
@@ -15,6 +15,7 @@ app = FastAPI()
 db = firestore.AsyncClient()
 
 # OAuth settings
+BUCKET_NAME = "chat-arena-data"
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -30,8 +31,7 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'},
 )
 
-with open("white-listed-users.txt", "r") as f:
-    white_listed_users = f.read().splitlines()
+white_listed_users = load_txt_from_gcp(BUCKET_NAME, "white-listed-users.txt")
 
 def sync_get_user(request):
     return anyio.from_thread.run(get_user, request)

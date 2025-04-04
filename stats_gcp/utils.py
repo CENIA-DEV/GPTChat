@@ -19,6 +19,17 @@ def load_json_from_gcp(bucket_name, file_path):
     data = json.loads(json_content)
     return data
 
+def load_txt_from_gcp(bucket_name, file_path):
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(file_path)
+
+    if not blob.exists():  # Verifica si el archivo existe antes de descargar
+        raise FileNotFoundError(f"El archivo {file_path} no existe en el bucket {bucket_name}.")
+
+    txt_content = blob.download_as_text()
+    return txt_content.splitlines()
+
 def count_user_votes():
     data = load_json_from_gcp(BUCKET_NAME, USER_FILE_PATH)
     users = [entry["username"] for entry in data]
