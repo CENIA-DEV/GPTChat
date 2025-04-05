@@ -173,8 +173,8 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     if change_bool:
         # Habilitar/deshabilitar botones en un orden diferente
         names = (
-            "### Model A: " + states[0]["template_name"],
-            "### Model B: " + states[1]["template_name"],
+            "### Model A: " + states[0]["template_name"][:-6], # [:-6] para quitar el "-cenia"
+            "### Model B: " + states[1]["template_name"][:-6], # [:-6] para quitar el "-cenia"
         )
         yield names + (disable_text,) + (disable_btn,) * 5 + tuple([gr.update(visible=True)])  # Mostrar el backdown_row # Ejemplo de habilitación
     else:
@@ -182,8 +182,8 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
         if ":" not in model_selectors[0]:
             for i in range(5):
                 names = (
-                    "### Model A: " + states[0]["template_name"],
-                    "### Model B: " + states[1]["template_name"],
+                    "### Model A: " + states[0]["template_name"][:-6], # [:-6] para quitar el "-cenia"
+                    "### Model B: " + states[1]["template_name"][:-6], # [:-6] para quitar el "-cenia"
                 )
                 yield names + (disable_text,) + (disable_btn,) * 5 + tuple([gr.update(visible=False)])  # Mostrar el backdown_row
                 time.sleep(0.1)
@@ -553,7 +553,7 @@ def build_side_by_side_ui_anony(models, demo):
                 key="grafico-votos-pais",
                 sort='y'
             )
-        with gr.Accordion("📜​ Cambio de prompt"):
+        with gr.Accordion("📜​ Actualiza el prompt", open=False):
             new_prompt_input = gr.Textbox(
                 label="Prompt", placeholder=SYSTEM_MSG
             )
@@ -570,7 +570,7 @@ def build_side_by_side_ui_anony(models, demo):
                     outputs=[actual_promt])
         # Cambio de datos nacionalidad
         with gr.Accordion(
-            f"🔍 Expanda para ver las descripciones de {len(models)} modelos",
+            f"🔍 Expanda para ver los modelos disponibles",
             open=False,
         ):
             model_description_md = get_model_description_md(models)
@@ -607,22 +607,22 @@ def build_side_by_side_ui_anony(models, demo):
         rightvote_btn = gr.Button(
             value="👉  B es mejor", visible=False, interactive=False
         )
-        tie_btn = gr.Button(value="🤝  Empate", visible=False, interactive=False)
+        tie_btn = gr.Button(value="🤝  Ambas son buenas", visible=False, interactive=False)
         bothbad_btn = gr.Button(
-            value="👎 ambas son malas", visible=False, interactive=False
+            value="👎 Ambas son malas", visible=False, interactive=False
         )
 
     with gr.Row():
         textbox = gr.Textbox(
             show_label=False,
-            placeholder="👉 Ingresa tu prompt y presiona ENTER",
+            placeholder="👉 Ingresa tu prompt y presiona Enviar",
             elem_id="input_box",
         )
         send_btn = gr.Button(value="Enviar", variant="primary", scale=0)
 
     with gr.Row() as button_row:
         clear_btn = gr.Button(value="🎲 Nueva Ronda", interactive=False)
-        regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False, visible=True)
+        regenerate_btn = gr.Button(value="🔄  Regenerar", interactive=False, visible=True)
         share_btn = gr.Button(value="📷  Compartir")
         
 

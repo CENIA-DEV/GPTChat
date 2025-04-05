@@ -60,7 +60,7 @@ visible_text = gr.Textbox(
     visible=True,
     value="",
     interactive=True,
-    placeholder="👉 Enter your prompt and press ENTER",
+    placeholder="👉 Ingresa tu prompt y presiona Enviar",
 )
 disable_multimodal = gr.MultimodalTextbox(visible=False, value=None, interactive=False)
 

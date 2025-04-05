@@ -5,7 +5,7 @@ It supports chatting with a single model or chatting with two models side-by-sid
 import os
 import argparse
 import uvicorn
-import pycountry
+from country_list import countries_for_language
 import asyncio
 from gradio_modal import Modal
 from fastapi import FastAPI, Request, HTTPException
@@ -36,7 +36,8 @@ from fastchat.utils import (
 from fastchat.serve.oauth import app as oauth_app, sync_get_user, db
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
-COUNTRIES = [country.name for country in pycountry.countries]
+countries = dict(countries_for_language('es'))
+COUNTRIES = list(countries.values())
 # COUNTRIES = ["Chile", "México"]
 
 def load_demo(url_params, request: gr.Request):
@@ -147,8 +148,8 @@ window.__gradio_mode__ = "app";
                 inputs = [],
                 outputs = modal
                 )
-            gr.Markdown("## Debes completar los campos obligatorios para acceder a la plataforma.")
-            gr.Markdown("### Los campos obligatorios son: _País_")
+            gr.Markdown("## Por favor, para acceder a la plataforma indica tu país")
+            # gr.Markdown("### Los campos obligatorios son: _País_")
             country = gr.Dropdown(COUNTRIES, label="País", interactive=True)
             education = gr.Dropdown(
                 ["", "Estudiante de pregrado", "Estudiante de postgrado", "Asistente de Investigación", "Investigador/a adjunto", "Investigador/a principal", "Otro"],

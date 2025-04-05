@@ -68,17 +68,17 @@ enable_moderation = False
 use_remote_storage = False
 
 acknowledgment_md = """
-### Terms of Service
+### Términos de Servicio
 
-Users are required to agree to the following terms before using the service:
+Los usuarios deben aceptar los siguientes términos antes de utilizar el servicio:
 
-The service is a research preview. It only provides limited safety measures and may generate offensive content.
-It must not be used for any illegal, harmful, violent, racist, or sexual purposes.
-Please do not upload any prisvate information.
-The service collects user dialogue data, including both text and images, and reserves the right to distribute it under a Creative Commons Attribution (CC-BY) or a similar license.
+El servicio es una vista previa de investigación. Solo proporciona medidas de seguridad limitadas y puede generar contenido ofensivo.
+No debe utilizarse para fines ilegales, dañinos, violentos, racistas o sexuales.
+Por favor, no subas información privada.
+El servicio recopila datos de diálogo de los usuarios, incluyendo tanto texto como imágenes, y se reserva el derecho de distribuirlos bajo una licencia Creative Commons Attribution (CC-BY) o una licencia similar.
 
-### Acknowledgment
-We thank to [Sebastián Donoso B](https://github.com/sdonoso) and [Gonzalo Fuentes O](https://github.com/GonzaloFuentes1).
+### Agradecimientos
+Agradecemos a [Sebastián Donoso B](https://github.com/sdonoso) y [Gonzalo Fuentes O](https://github.com/GonzaloFuentes1).
 
 <div class="sponsor-image-about">
     <img decoding="async" src="https://www.cenia.cl/wp-content/themes/urantiacoscenia/assets/images/logo_cenia.png" alt="cenia">
@@ -87,6 +87,7 @@ We thank to [Sebastián Donoso B](https://github.com/sdonoso) and [Gonzalo Fuent
     <img decoding="async" src="https://ging-upm-arenaenergy.hf.space/gradio_api/file=static/cotec.png" alt="cotec">
 </div>
 """
+
 
 # JSON file format of API-based models:
 # {

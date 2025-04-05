@@ -51,7 +51,7 @@ register_model_info(
         "claude-2.0",
         "claude-1",
     ],
-    "Claude",
+    "Claude (claude-3-5-sonnet@20240620)",
     "https://www.anthropic.com/news/claude-3-family",
     "Claude by Anthropic",
 )
@@ -74,9 +74,9 @@ register_model_info(
         "gemini-advanced-0514",
         "gemini-2.0-flash-exp"
     ],
-    "Gemini",
+    "Gemini (gemini-2.0-flash-exp)",
     "https://deepmind.google/technologies/gemini/",
-    "Gemini by Google",
+    "Gemini by Google ",
 )
 
 register_model_info(
@@ -95,7 +95,7 @@ register_model_info(
 
 register_model_info(
     ["llama-3-70b-instruct", "llama-3-8b-instruct","llama-3.2-90b-vision-instruct-maas"],
-    "Llama 3",
+    "Llama 3 (llama-3.2-90b-vision-instruct-maas)",
     "https://ai.meta.com/blog/meta-llama-3/",
     "Open foundation and chat models by Meta",
 )
@@ -116,7 +116,7 @@ register_model_info(
         "gpt-4o-2024-05-13",
         "gpt-4o-mini"
     ],
-    "GPT-4o",
+    "GPT-4o (gpt-4o-mini)",
     "https://openai.com/index/hello-gpt-4o/",
     "The flagship model across audio, vision, and text by OpenAI",
 )
@@ -238,7 +238,7 @@ register_model_info(
         "mistral-7b-instruct",
         "mistral-large-2411"
     ],
-    "Mixtral of experts",
+    "Mixtral of experts (mistral-large-2411)",
     "https://mistral.ai/news/mixtral-of-experts/",
     "A Mixture-of-Experts model by Mistral AI",
 )
