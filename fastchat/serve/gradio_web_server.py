@@ -55,12 +55,12 @@ enable_btn = gr.Button(interactive=True, visible=True)
 disable_btn = gr.Button(interactive=False)
 invisible_btn = gr.Button(interactive=False, visible=False)
 enable_text = gr.Textbox(
-    interactive=True, visible=True, placeholder="👉 Enter your prompt and press ENTER"
+    interactive=True, visible=True, placeholder="👉 Escribe tu promt y apreta Enviar"
 )
 disable_text = gr.Textbox(
     interactive=False,
     visible=True,
-    placeholder='Press "🎲 New Round" to start over👇 (Note: Your vote shapes the leaderboard, please vote RESPONSIBLY!)',
+    placeholder='🎲 Nueva Ronda" para empezar de nuevo👇 (Nota: ¡Tu voto influye en el ranking, por favor vota con RESPONSABILIDAD!)',
 )
 
 controller_url = None

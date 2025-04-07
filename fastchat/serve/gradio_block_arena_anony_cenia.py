@@ -47,6 +47,10 @@ from fastchat.utils import (
 from stats_gcp.utils import count_country_votes, count_user_votes
 import gradio as gr
 
+with open("model_order.txt", "r") as file:
+    ORDER_MODELS = file.read().splitlines()
+
+
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
 num_sides = 2
@@ -167,7 +171,15 @@ def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
     get_remote_logger().log(data)
 
     # Determinar el valor de `change_bool`
-    change_bool = states[0]["template_name"] > states[1]["template_name"]
+    index_0 = ORDER_MODELS.index(states[0]["template_name"])
+    index_1 = ORDER_MODELS.index(states[1]["template_name"])
+    
+    if index_0 > index_1 and vote_type == "leftvote":
+        change_bool = True
+    elif index_0 < index_1 and vote_type == "rightvote":
+        change_bool = False
+    else:
+        change_bool = False
 
     # Flujo alternativo basado en `change_bool`
     if change_bool:
