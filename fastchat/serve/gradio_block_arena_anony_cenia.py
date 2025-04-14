@@ -3,49 +3,47 @@ Chatbot Arena (battle) tab.
 Users chat with two anonymous models.
 """
 
+import asyncio
 import json
 import time
-import yaml
+
+import anyio
 import gradio as gr
 import numpy as np
-import asyncio
-import anyio
+import yaml
 from starlette.responses import RedirectResponse
-from fastchat.serve.oauth import db
+
 from fastchat.constants import (
-    MODERATION_MSG,
-    CONVERSATION_LIMIT_MSG,
-    SLOW_MODEL_MSG,
     BLIND_MODE_INPUT_CHAR_LEN_LIMIT,
-    CONVERSATION_TURN_LIMIT,
     CONFIG_MODELS_FILE,
-    SYSTEM_MSG
+    CONVERSATION_LIMIT_MSG,
+    CONVERSATION_TURN_LIMIT,
+    MODERATION_MSG,
+    SLOW_MODEL_MSG,
+    SYSTEM_MSG,
 )
 from fastchat.serve.gradio_block_arena_named import flash_buttons
 from fastchat.serve.gradio_web_server import (
     State,
-    bot_response,
-    get_conv_log_filename,
-    no_change_btn,
-    enable_btn,
-    disable_btn,
-    invisible_btn,
-    enable_text,
-    disable_text,
     acknowledgment_md,
+    bot_response,
+    disable_btn,
+    disable_text,
+    enable_btn,
+    enable_text,
+    get_conv_log_filename,
     get_ip,
     get_model_description_md,
+    invisible_btn,
+    no_change_btn,
     send_to_remote_server,
 )
-
+from fastchat.serve.oauth import db
 from fastchat.serve.remote_logger import get_remote_logger
-from fastchat.utils import (
-    build_logger,
-    moderation_filter,
-)
+from fastchat.utils import build_logger, moderation_filter
+
 # from stats.utils import count_country_votes
 from stats_gcp.utils import count_country_votes, count_user_votes
-import gradio as gr
 
 with open("model_order.txt", "r") as file:
     ORDER_MODELS = file.read().splitlines()
@@ -565,9 +563,9 @@ def build_side_by_side_ui_anony(models, demo):
                 key="grafico-votos-pais",
                 sort='y'
             )
-        with gr.Accordion("📜​ Actualiza el prompt", open=False):
+        with gr.Accordion("📜​ Actualiza el system prompt", open=False):
             new_prompt_input = gr.Textbox(
-                label="Prompt", placeholder=SYSTEM_MSG
+                label="System prompt", placeholder=SYSTEM_MSG
             )
             change_prompt_btn = gr.Button("Actualizar Prompt", elem_id="change_prompt_btn", variant="primary")
             actual_promt = gr.Textbox(label="Prompt Actual", value=SYSTEM_MSG, interactive=False)
