@@ -4,13 +4,12 @@ import json
 import os
 import random
 import re
-from typing import Optional
 import time
+from typing import Optional
 
 import requests
 
 from fastchat.utils import build_logger
-
 
 logger = build_logger("gradio_web_server", "gradio_web_server.log")
 
@@ -239,8 +238,9 @@ def bedrock_api_stream_iter(
     secret_key=None,
     endpoint_url=None,
 ):
-    import boto3
     import json
+
+    import boto3
     import botocore
 
     # Setup cliente boto3
@@ -282,7 +282,7 @@ def bedrock_api_stream_iter(
         }
 
     else:
-        raise NotImplementedError(f"Modelo de Bedrock no soportado automáticamente: {model_name}")
+        raise NotImplementedError(f"Modelo de Bedrock no soportado automáticamente : {model_name}")
 
     logger.info(f"==== request ====\n{body}")
 
@@ -416,8 +416,9 @@ def openai_assistant_api_stream_iter(
     assistant_id,
     api_key=None,
 ):
-    import openai
     import base64
+
+    import openai
 
     api_key = api_key or os.environ["OPENAI_API_KEY"]
     client = openai.OpenAI(base_url="https://api.openai.com/v1", api_key=api_key)
@@ -1101,11 +1102,8 @@ def cohere_api_stream_iter(
 def vertex_api_stream_iter(model_name, messages, temperature, top_p, max_new_tokens):
     import vertexai
     from vertexai import generative_models
-    from vertexai.generative_models import (
-        GenerationConfig,
-        GenerativeModel,
-        Image,
-    )
+    from vertexai.generative_models import (GenerationConfig, GenerativeModel,
+                                            Image)
 
     project_id = os.environ.get("GCP_PROJECT_ID", None)
     location = os.environ.get("GCP_LOCATION", None)
@@ -1165,8 +1163,9 @@ def vertex_api_stream_iter(model_name, messages, temperature, top_p, max_new_tok
 
 def mistral_vertex_api_stream_iter(model_name, messages, temperature, top_p, max_new_tokens):
 
-    from mistralai_gcp import MistralGoogleCloud
     import logging
+
+    from mistralai_gcp import MistralGoogleCloud
 
     logger = logging.getLogger(__name__)
 
@@ -1284,6 +1283,10 @@ def reka_api_stream_iter(
 
     for line in response.iter_lines():
         line = line.decode("utf8")
+        if not line.startswith("data: "):
+            continue
+        gen = json.loads(line[6:])
+        yield {"text": gen["text"], "error_code": 0}
         if not line.startswith("data: "):
             continue
         gen = json.loads(line[6:])
