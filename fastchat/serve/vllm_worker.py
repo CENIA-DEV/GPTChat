@@ -3,27 +3,23 @@ A model worker that executes the model based on vLLM.
 
 See documentations at docs/vllm_integration.md
 """
-
+# aux
 import argparse
 import asyncio
 import json
 from typing import List
 
-from fastapi import FastAPI, Request, BackgroundTasks
-from fastapi.responses import StreamingResponse, JSONResponse
 import uvicorn
+from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi.responses import JSONResponse, StreamingResponse
 from vllm import AsyncLLMEngine
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
 
 from fastchat.serve.base_model_worker import BaseModelWorker
-from fastchat.serve.model_worker import (
-    logger,
-    worker_id,
-)
+from fastchat.serve.model_worker import logger, worker_id
 from fastchat.utils import get_context_length, is_partial_stop
-
 
 app = FastAPI()
 
